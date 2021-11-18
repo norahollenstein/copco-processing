@@ -20,5 +20,5 @@ Adapt this script: https://osf.io/wku9c/ to compute reading time features from C
 ## EyeLink data validation
 
 ### Participant statistics
-participant_statistics.py
-include comprehension scores and reading times
+participant_statistics.py  
+includes calculation of comprehension scores and reading times
