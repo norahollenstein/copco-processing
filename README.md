@@ -1,7 +1,8 @@
-# copco-processing
-Code to process CopCo EyeLink files
+# CopCo Eye Tracking Data Processing
+
 
 ## EyeLink data processing
+Code to process CopCo EyeLink files
 
 ### Step 1: Convert EDF to ASC files 
 Option 1: using SR Research - EDF2ASC tool  
