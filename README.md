@@ -15,3 +15,10 @@ Use saccade_detection.py
 
 ### Step 4: Compute reading times per word
 Adapt this script: https://osf.io/wku9c/ to compute reading time features from CSV
+
+
+## EyeLink data validation
+
+### Participant statistics
+participant_statistics.py
+include comprehension scores and reading times
