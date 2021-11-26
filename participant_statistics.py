@@ -19,14 +19,16 @@ def comprehension_score(results_df):
 def reading_time(results_df):
     """Extract the absolute reading time (seconds spent on each screen) and normalized by number of words on the screen"""
 
-    # reading time in seconds (sampling rate 1000Hz)
+    # reading time per screen in seconds (sampling rate 1000Hz)
     absolute_reading_times = results_df['SENTENCE_RT']/1000
     avg_absolute_reading_times = np.mean(absolute_reading_times)
 
     relative_reading_times = []
     for t, a in zip(results_df['text'], absolute_reading_times):
         t = t.split()
+        print(t)
         words = len(t)
+        print(words)
         relative_reading_times.append(a/words)
     avg_relative_reading_times = np.mean(relative_reading_times)
 
@@ -36,7 +38,7 @@ def reading_time(results_df):
 def main():
 
     data_dir = sys.argv[1]
-
+    participant_stats = pd.DataFrame(columns=['subj', 'comprehension_accuracy', 'number_of_questions', 'absolute_reading_time', 'relative_reading_time'])
     for item in os.listdir(data_dir):
         if "P" in item:
             subject_id = item
@@ -48,12 +50,15 @@ def main():
             # remove beginning of speech trials
             results = results[results.paragraphid != -1]
 
-            #avg_accruacy, question_no = comprehension_score(results)
+            avg_accruacy, question_no = comprehension_score(results)
             #print(subject_id, avg_accruacy, question_no)
 
             abs_read_time, rel_read_time = reading_time(results)
-            print(subject_id, abs_read_time, rel_read_time)
+            #print(subject_id, abs_read_time, rel_read_time)
 
+            participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': avg_accruacy, 'number_of_questions': question_no, 'absolute_reading_time':abs_read_time, 'relative_reading_time':rel_read_time}, ignore_index=True)
+    print(participant_stats)
+    participant_stats.to_csv("participant_stats.csv")
 
 if __name__ == '__main__':
     main()
