@@ -32,7 +32,8 @@ def get_freq_proportion(text):
             if token.lemma_ in list(dk_frequency_list['i']):
                 count_freq += 1
 
-    return count_freq/toks
+    print(count_freq/toks)
+    return round((count_freq/toks), 2)
 
 
 def get_speech_length(text):
@@ -60,8 +61,8 @@ def get_speech_length(text):
         except IndexError:
             tokens_in_sent.append(tokens)
 
-    tokens_per_sent = (np.mean(tokens_in_sent), np.std(tokens_in_sent), np.min(tokens_in_sent), np.max(tokens_in_sent))
-    avg_token_length = (np.mean(token_lenghts), np.std(token_lenghts), np.min(token_lenghts), np.max(token_lenghts))
+    tokens_per_sent = (round(np.mean(tokens_in_sent),2), round(np.std(tokens_in_sent),2), np.min(tokens_in_sent), np.max(tokens_in_sent))
+    avg_token_length = (round(np.mean(token_lenghts),2), round(np.std(token_lenghts),2), np.min(token_lenghts), np.max(token_lenghts))
     return sentences, tokens_per_speech, types_per_speech, tokens_per_sent, avg_token_length
 
 
@@ -73,11 +74,15 @@ def main():
 
     ids = speeches["SpeechID"].unique()
     for id in ids:
+        print(id)
         speech = speeches.loc[speeches['SpeechID'] == id]
         frequency_prop = get_freq_proportion(speech)
         sentences, tokens_per_speech, types_per_speech, tokens_per_sent, avg_token_length = get_speech_length(speech)
         speech_stats = speech_stats.append({'id': id, 'frequency_prop': frequency_prop, 'number_of_sents': sentences, 'tokens_per_speech':tokens_per_speech, 'types_per_speech':types_per_speech, 'tokens_per_sent':tokens_per_sent, 'avg_token_length':avg_token_length}, ignore_index=True)
-    speech_stats.to_csv("speech_stats.csv")
+
+    sorted_speech_stats = speech_stats.sort_values(by=["id"])
+    print(sorted_speech_stats)
+    sorted_speech_stats.to_csv("speech_stats.csv")
 
 
 if __name__ == '__main__':

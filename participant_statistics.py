@@ -26,9 +26,7 @@ def reading_time(results_df):
     relative_reading_times = []
     for t, a in zip(results_df['text'], absolute_reading_times):
         t = t.split()
-        print(t)
         words = len(t)
-        print(words)
         relative_reading_times.append(a/words)
     avg_relative_reading_times = np.mean(relative_reading_times)
 
@@ -38,9 +36,11 @@ def reading_time(results_df):
 def main():
 
     data_dir = sys.argv[1]
-    participant_stats = pd.DataFrame(columns=['subj', 'comprehension_accuracy', 'number_of_questions', 'absolute_reading_time', 'relative_reading_time'])
+    participant_stats = pd.DataFrame(columns=['subj', 'comprehension_accuracy', 'number_of_speeches', 'number_of_questions', 'absolute_reading_time', 'relative_reading_time'])
+    speeches_read_all = []
     for item in os.listdir(data_dir):
         if "P" in item:
+            speeches_read = []
             subject_id = item
             results_file_path = os.path.join(data_dir, item, 'RESULTS_FILE.txt')
 
@@ -56,9 +56,20 @@ def main():
             abs_read_time, rel_read_time = reading_time(results)
             #print(subject_id, abs_read_time, rel_read_time)
 
-            participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': avg_accruacy, 'number_of_questions': question_no, 'absolute_reading_time':abs_read_time, 'relative_reading_time':rel_read_time}, ignore_index=True)
+            speeches_read = list(set(results['speechid'].values))
+
+            participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': "{:.2f}".format(avg_accruacy), 'number_of_speeches': len(speeches_read), 'number_of_questions': question_no, 'absolute_reading_time': "{:.2f}".format(abs_read_time), 'relative_reading_time':"{:.2f}".format(rel_read_time)}, ignore_index=True)
+            speeches_read_all += speeches_read
     print(participant_stats)
-    participant_stats.to_csv("participant_stats.csv")
+    participant_stats.to_csv("participant_stats.csv", index=False)
+
+    print("Total speeches read: ", len(speeches_read_all))
+    print("Unique speeches read: ", len(set(speeches_read_all)))
+    print(set(speeches_read_all))
+
+    # how often each speech was read:
+    speech_freq = {i:speeches_read_all.count(i) for i in set(speeches_read_all)}
+    print(speech_freq)
 
 if __name__ == '__main__':
     main()
