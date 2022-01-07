@@ -16,6 +16,7 @@ def comprehension_score(results_df):
 
     return average_accuracy, len(questions)
 
+
 def reading_time(results_df):
     """Extract the absolute reading time (seconds spent on each screen) and normalized by number of words on the screen"""
 
@@ -38,6 +39,9 @@ def main():
     data_dir = sys.argv[1]
     participant_stats = pd.DataFrame(columns=['subj', 'comprehension_accuracy', 'number_of_speeches', 'number_of_questions', 'absolute_reading_time', 'relative_reading_time'])
     speeches_read_all = []
+    comprehension_accs = []
+    questions = []
+    speeches = []
     for item in os.listdir(data_dir):
         if "P" in item:
             speeches_read = []
@@ -52,6 +56,8 @@ def main():
 
             avg_accruacy, question_no = comprehension_score(results)
             #print(subject_id, avg_accruacy, question_no)
+            comprehension_accs.append(avg_accruacy)
+            questions.append(question_no)
 
             abs_read_time, rel_read_time = reading_time(results)
             #print(subject_id, abs_read_time, rel_read_time)
@@ -60,12 +66,17 @@ def main():
 
             participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': "{:.2f}".format(avg_accruacy), 'number_of_speeches': len(speeches_read), 'number_of_questions': question_no, 'absolute_reading_time': "{:.2f}".format(abs_read_time), 'relative_reading_time':"{:.2f}".format(rel_read_time)}, ignore_index=True)
             speeches_read_all += speeches_read
+            speeches.append(len(speeches_read))
+
     print(participant_stats)
+    print("MEANS:")
+    print(np.mean(comprehension_accs), np.mean(speeches), np.mean(questions))
+    print("TOTAL:")
+    print(len(speeches_read_all), sum(questions))
     participant_stats.to_csv("participant_stats.csv", index=False)
 
     print("Total speeches read: ", len(speeches_read_all))
     print("Unique speeches read: ", len(set(speeches_read_all)))
-    print(set(speeches_read_all))
 
     # how often each speech was read:
     speech_freq = {i:speeches_read_all.count(i) for i in set(speeches_read_all)}
