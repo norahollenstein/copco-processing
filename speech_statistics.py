@@ -20,7 +20,7 @@ def get_freq_proportion(text):
     """Calculates the proportion of words within the 10000 most common Danish words.
     Source frequency list: https://korpus.dsl.dk/resources/details/freq-lemmas.html"""
 
-    dk_frequency_list = pd.read_csv("lemma-10k-2017/lemma-10k-2017-in.txt", delimiter="\t")
+    dk_frequency_list = pd.read_csv("lemma-10k-2017/lemma-10k-2017-in.txt", delimiter="\t", header=None)
 
     count_freq = 0
     toks = 0
@@ -29,7 +29,7 @@ def get_freq_proportion(text):
         tagged = spacy_dk_pipeline(paragraph)
         for token in tagged:
             toks += 1
-            if token.lemma_ in list(dk_frequency_list['i']):
+            if token.lemma_ in list(dk_frequency_list[1]):
                 count_freq += 1
 
     print(count_freq/toks)

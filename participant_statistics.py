@@ -2,6 +2,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+from scipy import stats
 
 # Calculate basic statistics for each participant
 # Reads the file 'RESULTS_FILE.txt' generated for each participant by EyeLink
@@ -68,7 +69,20 @@ def main():
             speeches_read_all += speeches_read
             speeches.append(len(speeches_read))
 
+
     print(participant_stats)
+    print(stats.spearmanr(participant_stats['comprehension_accuracy'], participant_stats['absolute_reading_time']))
+    print(np.std(participant_stats['absolute_reading_time'].astype(float).tolist()))
+
+    print("OUTLIERS:")
+    max = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) + 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
+    min = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) - 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
+    for idx, row in participant_stats.iterrows():
+        #print(row.absolute_reading_time)
+        #print(max, min)
+        if float(row.absolute_reading_time) > max or float(row.absolute_reading_time) < min:
+            print(row.subj)
+
     print("MEANS:")
     print(np.mean(comprehension_accs), np.mean(speeches), np.mean(questions))
     print("TOTAL:")
