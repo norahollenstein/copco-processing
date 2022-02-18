@@ -70,9 +70,10 @@ def main():
             speeches.append(len(speeches_read))
 
 
-    print(participant_stats)
+    print(participant_stats.sort_values('subj'))
+    print("Correlation between comprehension accuracy and reading time:")
     print(stats.spearmanr(participant_stats['comprehension_accuracy'], participant_stats['absolute_reading_time']))
-    print(np.std(participant_stats['absolute_reading_time'].astype(float).tolist()))
+    #print(np.std(participant_stats['absolute_reading_time'].astype(float).tolist()))
 
     print("OUTLIERS:")
     max = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) + 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
@@ -83,9 +84,9 @@ def main():
         if float(row.absolute_reading_time) > max or float(row.absolute_reading_time) < min:
             print(row.subj)
 
-    print("MEANS:")
+    print("MEANS (compr. acc, no. of speeches, no. of questions):")
     print(np.mean(comprehension_accs), np.mean(speeches), np.mean(questions))
-    print("TOTAL:")
+    print("TOTAL (no. of speeches, no. of questions):")
     print(len(speeches_read_all), sum(questions))
     participant_stats.to_csv("participant_stats.csv", index=False)
 
@@ -94,6 +95,7 @@ def main():
 
     # how often each speech was read:
     speech_freq = {i:speeches_read_all.count(i) for i in set(speeches_read_all)}
+    print("How often each speech is read:")
     print(speech_freq)
 
 if __name__ == '__main__':

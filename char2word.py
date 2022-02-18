@@ -4,10 +4,9 @@ from ast import literal_eval
 import numpy as np
 
 # read interest area reports and convert character-level fixation into word-level gaze features
-
 def get_part(speechid):
     #print(speechid)
-    experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526]}
+    experiment_parts = {"practice": [1327], "1": [7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526]}
     for k,v in experiment_parts.items():
         if speechid in v:
             part = k
