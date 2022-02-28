@@ -8,7 +8,6 @@ import sys
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
 
-
 report_dir = "FixationReports/"
 output_dir = "ExtractedFeatures/"
 
@@ -75,9 +74,3 @@ for file in os.listdir(report_dir):
 
                 words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         words_df.to_csv(output_dir+subject+".csv")
-
-
-
-
-        # --- TODO ---
-        # remove sentence with ID -1 and practice speech 1327
