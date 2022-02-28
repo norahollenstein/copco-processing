@@ -7,11 +7,7 @@ import sys
 # read fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
-#print(word2char_mapping)
 
-#char_mapping_part1 = pd.read_csv("part1_char_areas.csv", header=0)
-#char_mapping_part2 = pd.read_csv("part2_char_areas.csv", header=0)
-#char_mapping = pd.concat([char_mapping_part1, char_mapping_part2])
 
 report_dir = "FixationReports/"
 output_dir = "ExtractedFeatures/"
@@ -46,7 +42,7 @@ for file in os.listdir(report_dir):
                 trial_word_data.loc[:, 'landing_position'] = None
                 trial_word_data.loc[:, 'number_of_fixations'] = 0
                 trial_word_data['fixation_durs'] = [list() for x in range(len(trial_word_data.index))]
-                trial_word_data['fixed_chars'] = [list() for x in range(len(trial_word_data.index))]
+                #trial_word_data['fixed_chars'] = [list() for x in range(len(trial_word_data.index))]
                 trial_word_data['trial_fix_ids'] = [list() for x in range(len(trial_word_data.index))]
 
                 for fix_id, fix_info in trial_data.iterrows():
@@ -58,7 +54,7 @@ for file in os.listdir(report_dir):
                                 trial_word_data.at[widx, 'word_total_fix_dur'] += fix_info['CURRENT_FIX_DURATION']
                                 trial_word_data.at[widx, 'number_of_fixations'] += 1
                                 trial_word_data.at[widx, 'fixation_durs'].append(fix_info['CURRENT_FIX_DURATION'])
-                                trial_word_data.at[widx, 'fixed_chars'].append(fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'])
+                                #trial_word_data.at[widx, 'fixed_chars'].append(fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'])
                                 trial_word_data.at[widx, 'trial_fix_ids'].append(fix_id)
                                 if trial_word_data.at[widx, 'word_first_fix_dur'] == 0:
                                     trial_word_data.at[widx, 'word_first_fix_dur'] = fix_info['CURRENT_FIX_DURATION']
