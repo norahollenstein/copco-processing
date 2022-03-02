@@ -1,11 +1,11 @@
 # CopCo Eye-Tracking Data Processing
 
 ## Participant statistics
-`participant_statistics.py`  
-This script includes calculation of comprehension scores and overall reading times.
+`python participant_statistics.py RawData/`  
+This script includes calculation of comprehension scores and overall reading times. 
 
 ## Dataset statistics
-`speech_statistics.py`  
+`python speech_statistics.py`  
 This script includes calculation of text and sentence length.
 
 ## Feature extraction from fixation reports
