@@ -37,6 +37,7 @@ for file in os.listdir(report_dir):
                 trial_word_data.loc[:, 'word_total_fix_dur'] = 0
                 trial_word_data.loc[:, 'word_mean_fix_dur'] = 0
                 trial_word_data.loc[:, 'word_first_past_dur'] = 0
+                trial_word_data.loc[:, 'word_go_past_time'] = 0
                 trial_word_data.loc[:, "word_first_fix_dur"] = 0
                 trial_word_data.loc[:, 'landing_position'] = None
                 trial_word_data.loc[:, 'number_of_fixations'] = 0
@@ -62,6 +63,7 @@ for file in os.listdir(report_dir):
 
                 # now process word features that need previously added char fixations
                 for word_ind, word in trial_word_data.iterrows():
+                    fixations_to_left_of_curr_fix = []
                     if len(word["fixation_durs"]) != 0:
                         trial_word_data.loc[word_ind, 'word_mean_fix_dur'] = np.mean(word['fixation_durs'])
 
@@ -71,6 +73,10 @@ for file in os.listdir(report_dir):
                             if idx != len(word['trial_fix_ids'])-1:
                                 if word['trial_fix_ids'][idx+1] == f+1:
                                     trial_word_data.loc[word_ind, 'word_first_past_dur'] += word['fixation_durs'][idx+1]
+                                    trial_word_data.loc[word_ind, 'word_go_past_time'] += word['fixation_durs'][idx+1]
+                                elif word['trial_fix_ids'][idx+1] in fixations_to_left_of_curr_fix:
+                                    trial_word_data.loc[word_ind, 'word_go_past_time'] += word['fixation_durs'][idx+1]
+                            fixations_to_left_of_curr_fix.append(f)
 
                 words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         words_df.to_csv(output_dir+subject+".csv")

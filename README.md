@@ -10,11 +10,11 @@ This script includes calculation of text and sentence length.
 
 ## Feature extraction from fixation reports
 
-1. Convert SR DataViewer output files to UTF-8 for correct representation of Danish characters:
-iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt
+1. Convert SR DataViewer output files to UTF-8 for correct representation of Danish characters:  
+`iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt`
 
 2. Create a mapping from character interest areas to word interest areas:
-char2word_mapping.py
+`char2word_mapping.py`
 
 3. Extract word-level and character-level features
 extract_features.py
