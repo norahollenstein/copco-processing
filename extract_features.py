@@ -4,7 +4,7 @@ import numpy as np
 from ast import literal_eval
 import sys
 
-# read fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
+# This script reads fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
 
@@ -14,7 +14,7 @@ output_dir = "ExtractedFeatures/"
 for file in os.listdir(report_dir):
     if file.endswith("-utf8.txt"):
         print(file)
-        data = pd.read_csv(report_dir+file, delimiter="\t", converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})#, "CURRENT_FIX_INTEREST_AREA_DATA": literal_eval, "NEXT_FIX_INTEREST_AREAS": literal_eval, "NEXT_FIX_INTEREST_AREA_DATA": literal_eval, "NEXT_SAC_END_INTEREST_AREAS": literal_eval})
+        data = pd.read_csv(report_dir+file, delimiter="\t", converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})
         print("Texts:", data['speechid'].unique())
 
         subject = data['RECORDING_SESSION_LABEL'].unique()[0]
@@ -26,17 +26,18 @@ for file in os.listdir(report_dir):
         for trial_no, trial_data in trials:
 
             # ignore practice speech with ID 1327 and sentences with ID -1 (new text screen)
-            if trial_data['speechid'].tolist()[0] != 1327 or trial_data['paragraphid'].tolist()[0] != -1:
+            if trial_data['speechid'].tolist()[0] != 1327 and trial_data['paragraphid'].tolist()[0] != -1:
 
                 # ---- TO DO ----
                 # map fixations that fall outside of interest areas but are close enough
+                # especially the for the first and last line on the screen. the interest areas of these lines seems to be of shorter height than the rest.
                 # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
 
                 trial_word_data = word2char_mapping[word2char_mapping["trialId"] == trial_no].copy()
                 trial_word_data = trial_word_data.reset_index()
                 trial_word_data.loc[:, 'word_total_fix_dur'] = 0
                 trial_word_data.loc[:, 'word_mean_fix_dur'] = 0
-                trial_word_data.loc[:, 'word_first_past_dur'] = 0
+                trial_word_data.loc[:, 'word_first_pass_dur'] = 0
                 trial_word_data.loc[:, 'word_go_past_time'] = 0
                 trial_word_data.loc[:, "word_first_fix_dur"] = 0
                 trial_word_data.loc[:, 'landing_position'] = None
@@ -62,21 +63,34 @@ for file in os.listdir(report_dir):
                                     trial_word_data.at[widx, 'landing_position'] = fix_info['CURRENT_FIX_INTEREST_AREA_ID']
 
                 # now process word features that need previously added char fixations
+                fixations_to_left_of_curr_fix = []
                 for word_ind, word in trial_word_data.iterrows():
-                    fixations_to_left_of_curr_fix = []
+
                     if len(word["fixation_durs"]) != 0:
                         trial_word_data.loc[word_ind, 'word_mean_fix_dur'] = np.mean(word['fixation_durs'])
+                        go_past_fix = []
+                        first_pass_fix = []
 
                         for idx, f in enumerate(word['trial_fix_ids']):
                             if idx == 0:
-                                trial_word_data.loc[word_ind, 'word_first_past_dur'] = word['fixation_durs'][0]
-                            if idx != len(word['trial_fix_ids'])-1:
-                                if word['trial_fix_ids'][idx+1] == f+1:
-                                    trial_word_data.loc[word_ind, 'word_first_past_dur'] += word['fixation_durs'][idx+1]
-                                    trial_word_data.loc[word_ind, 'word_go_past_time'] += word['fixation_durs'][idx+1]
-                                elif word['trial_fix_ids'][idx+1] in fixations_to_left_of_curr_fix:
-                                    trial_word_data.loc[word_ind, 'word_go_past_time'] += word['fixation_durs'][idx+1]
+                                go_past_fix.append(f)
+                                first_pass_fix.append(f)
+                                if idx != len(word['trial_fix_ids'])-1:
+                                    i = 1
+                                    while f+i in fixations_to_left_of_curr_fix:
+                                        go_past_fix.append(f+i)
+                                        i +=1
+                            else:
+                                if f == go_past_fix[-1]+1:
+                                    go_past_fix.append(f)
+                                if f == first_pass_fix[-1]+1:
+                                    first_pass_fix.append(f)
                             fixations_to_left_of_curr_fix.append(f)
+
+                        for fix_ind in first_pass_fix:
+                            trial_word_data.loc[word_ind, 'word_first_pass_dur'] += trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
+                        for fix_ind in go_past_fix:
+                            trial_word_data.loc[word_ind, 'word_go_past_time'] += trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
 
                 words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         words_df.to_csv(output_dir+subject+".csv")

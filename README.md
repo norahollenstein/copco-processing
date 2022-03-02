@@ -16,7 +16,7 @@ This script includes calculation of text and sentence length.
 2. Create a mapping from character interest areas to word interest areas:  
 `char2word_mapping.py`
 
-3. Extract word-level and character-level features
+3. Extract word-level and character-level features with
 `extract_features.py`  
 This outputs new files in `ExtractedFeatures/`.  
 These files can also be downloaded directly from the [OSF repository](https://osf.io/ud8s5/).
