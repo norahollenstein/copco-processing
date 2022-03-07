@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from ast import literal_eval
 import sys
+from char2word_mapping import get_part
 
 # This script reads fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
 
@@ -11,11 +12,22 @@ word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"charact
 report_dir = "FixationReports/"
 output_dir = "ExtractedFeatures/"
 
+print("HELLLLOOO")
+
 for file in os.listdir(report_dir):
-    if file.endswith("-utf8.txt"):
+    if file.endswith("P11-utf8.txt"):
         print(file)
         data = pd.read_csv(report_dir+file, delimiter="\t", converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})
         print("Texts:", data['speechid'].unique())
+
+        # check which experiment part was conducted
+        experiment_parts = []
+        for speech_id in data['speechid'].unique():
+            experiment_parts.append(get_part(speech_id))
+        print(experiment_parts)
+        if len(list(set(experiment_parts))) > 1:
+            print("ERROR! More than one experiment part in fixaton report.")
+            sys.exit()
 
         subject = data['RECORDING_SESSION_LABEL'].unique()[0]
         words_df = pd.DataFrame()
@@ -27,6 +39,9 @@ for file in os.listdir(report_dir):
 
             # ignore practice speech with ID 1327 and sentences with ID -1 (new text screen)
             if trial_data['speechid'].tolist()[0] != 1327 and trial_data['paragraphid'].tolist()[0] != -1:
+                print(trial_data['speechid'].unique())
+                print(trial_data['paragraphid'].tolist()[0], type(trial_data['paragraphid'].tolist()[0]), trial_no)
+                print("---")
 
                 # ---- TO DO ----
                 # map fixations that fall outside of interest areas but are close enough
@@ -34,6 +49,10 @@ for file in os.listdir(report_dir):
                 # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
 
                 trial_word_data = word2char_mapping[word2char_mapping["trialId"] == trial_no].copy()
+                print(trial_word_data)
+                print(trial_word_data['part'].unique())
+                print(trial_word_data['speechId'].unique())
+                print("...")
                 trial_word_data = trial_word_data.reset_index()
                 trial_word_data.loc[:, 'word_total_fix_dur'] = 0
                 trial_word_data.loc[:, 'word_mean_fix_dur'] = 0
