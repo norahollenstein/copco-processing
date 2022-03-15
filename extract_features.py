@@ -15,7 +15,6 @@ def get_experiment_part(speechid):
 # This script reads fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
-print(word2char_mapping)
 
 report_dir = "FixationReports/"
 output_dir = "ExtractedFeatures/"
@@ -27,8 +26,8 @@ for file in os.listdir(report_dir):
         print("Texts:", data['speechid'].unique())
 
         # remove practice speech with ID 1327 and trials with ID -1 (new text screen)
-        data.drop(data[data.speechid == 1327].index, inplace=True)
-        data.drop(data[data.paragraphid == -1].index, inplace=True)
+        data = data.drop(data[data.speechid == 1327].index)
+        data = data.drop(data[data.paragraphid == -1].index)
 
         # check which experiment part was conducted
         experiment_parts = []
@@ -46,11 +45,16 @@ for file in os.listdir(report_dir):
 
         for trial_no, trial_data in trials:
 
+            #print("...")
+
             # ---- TO DO ----
             # map fixations that fall outside of interest areas but are close enough
             # especially the for the first and last line on the screen. the interest areas of these lines seems to be of shorter height than the rest.
             # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
-            trial_word_data = word2char_mapping[(word2char_mapping["trialId"] == trial_no) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
+
+            trial_word_data = word2char_mapping[(word2char_mapping["trialId"] == trial_no) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
+            # drop ID -1 here too (new text screen)
+            trial_word_data = trial_word_data.drop(trial_word_data[trial_word_data.paragraphId == -1].index)
             trial_word_data = trial_word_data.reset_index()
             trial_word_data.loc[:, 'word_total_fix_dur'] = 0
             trial_word_data.loc[:, 'word_mean_fix_dur'] = 0
