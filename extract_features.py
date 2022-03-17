@@ -4,6 +4,8 @@ import numpy as np
 from ast import literal_eval
 import sys
 
+# This script reads fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
+
 def get_experiment_part(speechid):
     #print(speechid)
     experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526]}
@@ -12,10 +14,8 @@ def get_experiment_part(speechid):
             part = k
     return part
 
-# This script reads fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
-
 report_dir = "FixationReports/"
 output_dir = "ExtractedFeatures/"
 
@@ -128,6 +128,8 @@ for file in os.listdir(report_dir):
                             trial_word_data.loc[word_ind, 'word_go_past_time'] = trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
                         else:
                             trial_word_data.loc[word_ind, 'word_go_past_time'] += trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
-
+            # concatenate all trials
             words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
-        words_df.to_csv(output_dir+subject+".csv")
+        # reorder columns
+        words_df = words_df[['part','trialId','speechId','paragraphId','sentenceId','wordId','word','char_IA_ids','landing_position','word_first_fix_dur', 'word_first_pass_dur','word_go_past_time','word_mean_fix_dur','word_total_fix_dur','number_of_fixations','fixation_durs','trial_fix_ids']]
+        words_df.to_csv(output_dir+subject+".csv", index=False, encoding='utf-8')
