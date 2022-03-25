@@ -35,6 +35,14 @@ def reading_time(results_df):
     return avg_absolute_reading_times, avg_relative_reading_times
 
 
+def add_dyslexia_info(df_participants):
+
+    dyslexia_ids = {"P00": "no", "P01": "no", "P02": "no", "P03": "no", "P04": "no", "P05": "no", "P06": "no", "P07": "no", "P08": "no", "P09": "no", "P10": "no", "P11": "no", "P12": "no", "P13": "no", "P14": "no", "P15": "no", "P16": "no", "P17": "no", "P18": "no", "P19": "no", "P20": "no", "P21": "no", "P22": "no", "P23": "yes", "P24": "yes", "P25": "yes", "P26": "yes", "P27": "yes", "P28": "yes", "P29": "yes", "P30": "yes"}
+
+    for id, dys in dyslexia_ids.items():
+        df_participants.loc[df_participants['subj'] == id, "dyslexia"] = dys
+    return df_participants
+
 def main():
 
     data_dir = sys.argv[1]
@@ -71,6 +79,8 @@ def main():
 
 
     print(participant_stats.sort_values('subj'))
+    participant_stats = add_dyslexia_info(participant_stats)
+    print(participant_stats)
     print("Correlation between comprehension accuracy and reading time:")
     print(stats.spearmanr(participant_stats['comprehension_accuracy'], participant_stats['absolute_reading_time']))
     #print(np.std(participant_stats['absolute_reading_time'].astype(float).tolist()))
