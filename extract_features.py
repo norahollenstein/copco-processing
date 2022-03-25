@@ -44,22 +44,26 @@ for file in os.listdir(report_dir):
         trials = data.groupby(["TRIAL_INDEX"])
 
         for trial_no, trial_data in trials:
-
+            #print(trial_no, trial_data)
+            #print(len(trial_data))
             # remove all fixations < 100ms as they probably don't contain linguistic processing information
             trial_data = trial_data.drop(trial_data[trial_data.CURRENT_FIX_DURATION < 100].index)
+            #print(len(trial_data))
 
             # ---- TO DO ----
             # map fixations that fall outside of interest areas but are close enough
             # especially the for the first and last line on the screen. the interest areas of these lines seems to be of shorter height than the rest.
             # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
-
+            #print(trial_no, experiment_parts[0], trial_data.speechid.unique(), trial_data.paragraphid.unique())
             trial_word_data = word2char_mapping[(word2char_mapping["trialId"] == trial_no) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
+            #print(trial_word_data)
             # drop ID -1 here too (new text screen)
             trial_word_data = trial_word_data.drop(trial_word_data[trial_word_data.paragraphId == -1].index)
             # drop column that are not needed
             trial_word_data = trial_word_data.drop('characters', axis=1)
             # rest index column
             trial_word_data.reset_index(drop=True, inplace=True)
+            #print(trial_word_data)
             # set initial feature values to nan, 0 or empty list
             trial_word_data.loc[:, 'word_total_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_mean_fix_dur'] = np.NaN
