@@ -21,6 +21,8 @@ This script includes calculation of text and sentence length.
 This outputs new files in `ExtractedFeatures/`.  
 These files can also be downloaded directly from the [OSF repository](https://osf.io/ud8s5/).
 
+A description of the extracted features can be found [here](https://osf.io/ud8s5/wiki/Eye-tracking%20features/).
+
 
 
 ## Data validation
