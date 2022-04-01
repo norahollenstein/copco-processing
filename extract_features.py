@@ -54,6 +54,7 @@ for file in os.listdir(report_dir):
             # map fixations that fall outside of interest areas but are close enough
             # especially the for the first and last line on the screen. the interest areas of these lines seems to be of shorter height than the rest.
             # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
+
             #print(trial_no, experiment_parts[0], trial_data.speechid.unique(), trial_data.paragraphid.unique())
             trial_word_data = word2char_mapping[(word2char_mapping["trialId"] == trial_no) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
             #print(trial_word_data)
@@ -64,7 +65,11 @@ for file in os.listdir(report_dir):
             # rest index column
             trial_word_data.reset_index(drop=True, inplace=True)
             #print(trial_word_data)
+
+            # initialize word-level eye-tracking features
             # set initial feature values to nan, 0 or empty list
+
+            # fixation features
             trial_word_data.loc[:, 'word_total_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_mean_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_first_pass_dur'] = np.NaN
@@ -73,15 +78,20 @@ for file in os.listdir(report_dir):
             trial_word_data.loc[:, 'landing_position'] = np.NaN
             trial_word_data.loc[:, 'number_of_fixations'] = 0
             trial_word_data['fixation_durs'] = [list() for x in range(len(trial_word_data.index))]
-            #trial_word_data['fixed_chars'] = [list() for x in range(len(trial_word_data.index))]
+            trial_word_data['fixed_chars'] = [list() for x in range(len(trial_word_data.index))]
             trial_word_data['trial_fix_ids'] = [list() for x in range(len(trial_word_data.index))]
+
+            # saccade features
+            trial_word_data.loc[:, 'word_mean_sacc_dur'] = np.NaN
+            trial_word_data.loc[:, 'word_peak_sacc_velocity'] = np.NaN
+            trial_word_data['saccade_durs'] = [list() for x in range(len(trial_word_data.index))]
+            trial_word_data['saccade_vels'] = [list() for x in range(len(trial_word_data.index))]
 
             # iterate through all fixations in a trial
             for fix_id, fix_info in trial_data.iterrows():
+                # check that current fuxation falls on text
                 if fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'] != ".":
-
                     for widx, char_id_list in enumerate(trial_word_data['char_IA_ids']):
-
                         if int(fix_info['CURRENT_FIX_INTEREST_AREA_ID']) in char_id_list:
                             if np.isnan(trial_word_data.at[widx, 'word_total_fix_dur']):
                                 trial_word_data.at[widx, 'word_total_fix_dur'] = fix_info['CURRENT_FIX_DURATION']
@@ -89,12 +99,16 @@ for file in os.listdir(report_dir):
                                 trial_word_data.at[widx, 'word_total_fix_dur'] += fix_info['CURRENT_FIX_DURATION']
                             trial_word_data.at[widx, 'number_of_fixations'] += 1
                             trial_word_data.at[widx, 'fixation_durs'].append(fix_info['CURRENT_FIX_DURATION'])
-                            #trial_word_data.at[widx, 'fixed_chars'].append(fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'])
+                            trial_word_data.at[widx, 'fixed_chars'].append(fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'])
                             trial_word_data.at[widx, 'trial_fix_ids'].append(fix_id)
                             if np.isnan(trial_word_data.at[widx, 'word_first_fix_dur']):
                                 trial_word_data.at[widx, 'word_first_fix_dur'] = fix_info['CURRENT_FIX_DURATION']
                             if np.isnan(trial_word_data.at[widx, 'landing_position']):
                                 trial_word_data.at[widx, 'landing_position'] = char_id_list.index(int(fix_info['CURRENT_FIX_INTEREST_AREA_ID']))
+                            # check for saccades
+                            if fix_info['NEXT_SAC_DURATION'] != ".":
+                                trial_word_data.at[widx, 'saccade_durs'].append(int(fix_info['NEXT_SAC_DURATION']))
+                                trial_word_data.at[widx, 'saccade_vels'].append(float(fix_info['NEXT_SAC_PEAK_VELOCITY'].replace(',', '.')))
 
             # now process word features that need previously added fixation features
             fixations_to_left_of_curr_fix = []
@@ -104,6 +118,10 @@ for file in os.listdir(report_dir):
                     trial_word_data.loc[word_ind, 'word_mean_fix_dur'] = np.mean(word['fixation_durs'])
                     go_past_fix = []
                     first_pass_fix = []
+                    # check for saccades
+                    if len(word["saccade_durs"]) != 0:
+                        trial_word_data.loc[word_ind, 'word_mean_sacc_dur'] = np.mean(word['saccade_durs'])
+                        trial_word_data.loc[word_ind, 'word_peak_sacc_velocity'] = np.max(word['saccade_vels'])
 
                     for idx, f in enumerate(word['trial_fix_ids']):
                         if idx == 0:
@@ -135,5 +153,5 @@ for file in os.listdir(report_dir):
             # concatenate all trials
             words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         # reorder columns
-        words_df = words_df[['part','trialId','speechId','paragraphId','sentenceId','wordId','word','char_IA_ids','landing_position','word_first_fix_dur', 'word_first_pass_dur','word_go_past_time','word_mean_fix_dur','word_total_fix_dur','number_of_fixations','fixation_durs','trial_fix_ids']]
+        words_df = words_df[['part','trialId','speechId','paragraphId','sentenceId','wordId','word','char_IA_ids','landing_position','word_first_fix_dur', 'word_first_pass_dur','word_go_past_time','word_mean_fix_dur','word_total_fix_dur','number_of_fixations','word_mean_sacc_dur','word_peak_sacc_velocity']]
         words_df.to_csv(output_dir+subject+".csv", index=False, encoding='utf-8')
