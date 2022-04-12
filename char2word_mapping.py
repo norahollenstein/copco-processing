@@ -70,4 +70,4 @@ trial_areas_df.reset_index(inplace=True)
 # split sentences to add sentence char_IA_ids
 sentence_ids = split_sentences(trial_areas_df)
 trial_areas_df['sentenceId'] = sentence_ids
-trial_areas_df.to_csv("word2char_IA_mapping-new.csv", index=False, encoding='utf-8')
+trial_areas_df.to_csv("word2char_IA_mapping.csv", index=False, encoding='utf-8')

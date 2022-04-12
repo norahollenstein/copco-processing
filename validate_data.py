@@ -11,6 +11,8 @@ import string
 import scipy
 from wordfreq import word_frequency, zipf_frequency
 from scipy import stats
+from ast import literal_eval
+
 
 #test word length effect
 #test word frequency effect
@@ -23,34 +25,37 @@ def first_char_analysis(et_data, subject):
     dwell_time_punct = {}
     dwell_time_consonants = {}
 
-    vowels = "aeiouæøåyé"
-    punct = ".,?!:;-()'1234567890"
+    vowels = "aeiouæøåy"
+    punct = ".,?!:;-()'1234567890[]%/’”äé⁄–, "
     print(subject)
 
     for index, word in et_data.iterrows():
         word_len = len(word.word)
-        if not math.isnan(word.word_first_char_dwell_time):
-            #print(word.word, word.word_landing_position_char, word.word_landing_position_index, word.word_first_char_dwell_time)
-            if word.word_landing_position_char.lower() in vowels:
-                if word.word_landing_position_char.lower() not in dwell_time_vowels:
-                    dwell_time_vowels[word.word_landing_position_char.lower()] = [word.word_first_char_dwell_time]
+        if not math.isnan(word.word_first_fix_dur):
+            # get actual character from index
+            landing_position_char = word.word[int(word.landing_position)]
+            landing_position_char = landing_position_char.lower()
+
+            if landing_position_char in vowels:
+                if landing_position_char not in dwell_time_vowels:
+                    dwell_time_vowels[landing_position_char] = [word.word_first_fix_dur]
                 else:
-                    dwell_time_vowels[word.word_landing_position_char.lower()].append(word.word_first_char_dwell_time)
-            elif word.word_landing_position_char.lower() in punct:
-                if word.word_landing_position_char.lower() not in dwell_time_punct:
-                    dwell_time_punct[word.word_landing_position_char.lower()] = [word.word_first_char_dwell_time]
+                    dwell_time_vowels[landing_position_char].append(word.word_first_fix_dur)
+            elif landing_position_char in punct:
+                if landing_position_char not in dwell_time_punct:
+                    dwell_time_punct[landing_position_char] = [word.word_first_fix_dur]
                 else:
-                    dwell_time_punct[word.word_landing_position_char.lower()].append(word.word_first_char_dwell_time)
+                    dwell_time_punct[landing_position_char].append(word.word_first_fix_dur)
             else:
-                if word.word_landing_position_char.lower() not in dwell_time_consonants:
-                    dwell_time_consonants[word.word_landing_position_char.lower()] = [word.word_first_char_dwell_time]
+                if landing_position_char not in dwell_time_consonants:
+                    dwell_time_consonants[landing_position_char] = [word.word_first_fix_dur]
                 else:
-                    dwell_time_consonants[word.word_landing_position_char.lower()].append(word.word_first_char_dwell_time)
+                    dwell_time_consonants[landing_position_char].append(word.word_first_fix_dur)
 
     flat_vowel_list = [item for sublist in dwell_time_vowels.values() for item in sublist]
     flat_cons_list = [item for sublist in dwell_time_consonants.values() for item in sublist]
-    print("vowels mean:", np.mean(flat_vowel_list))
-    print("consonants mean:", np.mean(flat_cons_list))
+    print("vowels mean:", np.mean(flat_vowel_list), len(flat_vowel_list))
+    print("consonants mean:", np.mean(flat_cons_list), len(flat_cons_list))
     print(scipy.stats.ttest_ind(flat_vowel_list, flat_cons_list))
 
 
@@ -69,7 +74,7 @@ def word_freq_effect(et_data, subject):
         word_freq = word_frequency(word.word, 'da')
         word_freq = round(word_freq, 3)
         #word_freq = dk_frequency_list[dk_frequency_list['word'] == word.word].freq
-        if not math.isnan(word.word_first_fixation_duration):
+        if not math.isnan(word.word_first_fix_dur):
             if word_freq not in word_freqs_skip:
                 #word_lengths_ffd[word_len] = [word.word_first_fixation_duration]
                 #word_lengths_tft[word_len] = [word.word_total_fix_time]
@@ -102,7 +107,7 @@ def word_length_effect(et_data, subject):
     skipped = 0
     for index, word in et_data.iterrows():
         word_len = len(word.word)
-        if not math.isnan(word.word_first_fixation_duration):
+        if not math.isnan(word.word_first_fix_dur):
             if word_len not in word_lengths_skip:
                 #word_lengths_ffd[word_len] = [word.word_first_fixation_duration]
                 #word_lengths_tft[word_len] = [word.word_total_fix_time]
@@ -154,52 +159,45 @@ def plot_word_freq_effect(skipping_proportions):
 
 def plot_feat_ranges(et_data_all_subjs):
 
-    features = ["word_first_fixation_duration", "word_mean_fixation_duration", "word_total_fix_time"]
+    features = ["word_first_fix_dur", "word_mean_fix_dur", "word_total_fix_dur", "word_first_pass_dur", "word_go_past_time"]#, "word_mean_sacc_dur", "word_peak_sacc_velocity"]
+    #features = ["number_of_fixations"] # "number_of_fixations"
 
     sns.set(font_scale = 1)
     sns.set_style("whitegrid")
 
     print(len(et_data_all_subjs))
-    et_data_all_subjs.drop(et_data_all_subjs[et_data_all_subjs.word_mean_fixation_duration < 100].index, inplace=True)
+    et_data_all_subjs.drop(et_data_all_subjs[et_data_all_subjs.word_mean_fix_dur < 100].index, inplace=True)
     print(len(et_data_all_subjs))
 
-    ax = sns.boxplot(data=et_data_all_subjs[features], palette=sns.color_palette("Blues_d", len(features)), color='grey', linewidth=1, fliersize=1)
+    ax = sns.boxplot(data=et_data_all_subjs[features], palette=sns.color_palette("viridis", len(features)), color='grey', linewidth=1, fliersize=1)
     medians = []
     for f in features:
-        print(f, "mean/std:", np.mean(et_data_all_subjs[f]), np.std(et_data_all_subjs[f]))
-        median = et_data_all_subjs[f].median()
-        mean = np.mean(et_data_all_subjs[f])
-
-        medians.append(mean)
+        print(f, "mean/std:", np.nanmean(et_data_all_subjs[f]), np.nanmedian(et_data_all_subjs[f]), np.std(et_data_all_subjs[f]))
+        median = np.nanmedian(et_data_all_subjs[f])
+        medians.append(median)
     median_labels = [str(np.round(s, 2)) for s in medians]
-    #median_labels = [str(np.round(s, 2)) for s in medians]
 
-    pos = range(len(medians))
+    pos = range(len(median_labels))
     for tick,label in zip(pos,ax.get_xticklabels()):
         ax.text(pos[tick], -220, median_labels[tick], #medians[tick] + offsets[tick]
                 horizontalalignment='center', size='small', color='black')#, weight='semibold')
-    ax.set_xticklabels(["FFD", "MFD", "TFT"])
+    ax.set_xticklabels(["FFD", "MFD", "TFD", "FPD", "GPT"])
     plt.ylim(0,2000)
     plt.savefig("plots/feature_ranges_copco.pdf")
     plt.show()
     plt.close()
 
-    #ax = sns.boxplot(data=et_data_all_subjs[["number_of_fixations"]], color="green")
-    #plt.show()
-
-
 
 def plot_landing_position(et_data_all_subjs):
 
     all_df = pd.DataFrame(columns = ['position', 'count'])
-    for n in et_data_all_subjs['word_landing_position_index'].unique():
-        x = len(et_data_all_subjs[et_data_all_subjs['word_landing_position_index'] == n])
+    for n in et_data_all_subjs['landing_position'].unique():
+        x = len(et_data_all_subjs[et_data_all_subjs['landing_position'] == n])
 
         if x != 0 and n <13:
             dd = [[int(n+1), x]]
             df = pd.DataFrame(dd, columns = ['position', 'count'])
             all_df = pd.concat([all_df, df])
-
 
     sns.set(font_scale = 1)
     sns.set_style("whitegrid")
@@ -210,30 +208,35 @@ def plot_landing_position(et_data_all_subjs):
     plt.close()
 
 def landing_pos_freq(et_data_all_subjs):
-    char_freq = pd.read_csv("letter_freq_dk.csv", header=0)
-    chars = et_data_all_subjs.word_landing_position_char.tolist()
+    # source: https://www.sttmedia.com/characterfrequency-danish
+    char_freq = pd.read_csv("utils/letter_freq_dk.csv", header=0, delimiter=";")
+
+    # get actual characters from index
+    chars = []
+    for index, word in et_data_all_subjs.iterrows():
+        if not math.isnan(word.word_first_fix_dur):
+            char = word.word[int(word.landing_position)].lower()
+            chars.append(char)
     chars = [str(x) for x in chars if str(x) != 'nan']
 
     freq_dict = {}
     freq_dict_char = {}
 
-    for idx,row in et_data_all_subjs.iterrows():
-        #print(row.word_landing_position_char)
-        if str(row.word_landing_position_char) != "nan":
-            #print(row.word_landing_position_char)
-            #print(char_freq[char_freq.Letter == str(row.word_landing_position_char).upper()].Frequency.values[0])
-            try:
-                freq = char_freq[char_freq.Letter == str(row.word_landing_position_char).upper()].Frequency.values[0]
-                if float(freq) not in freq_dict:
-                    freq_dict[float(freq)] = 1
-                else:
-                    freq_dict[float(freq)] += 1
-                if str(row.word_landing_position_char).upper() not in freq_dict_char:
-                    freq_dict_char[str(row.word_landing_position_char).upper()] = 1
-                else:
-                    freq_dict_char[str(row.word_landing_position_char).upper()] += 1
-            except IndexError:
-                continue
+    for char in chars:
+        try:
+            freq = char_freq[char_freq.Letter == str(char).upper()].Frequency.values[0]
+            freq = freq.replace("%", "")
+            freq = freq.replace(" ", "")
+            if float(freq) not in freq_dict:
+                freq_dict[float(freq)] = 1
+            else:
+                freq_dict[float(freq)] += 1
+            if str(char).upper() not in freq_dict_char:
+                freq_dict_char[str(char).upper()] = 1
+            else:
+                freq_dict_char[str(char).upper()] += 1
+        except IndexError:
+            continue
 
     normalized = []
     for x,y in freq_dict.items():
@@ -243,22 +246,17 @@ def landing_pos_freq(et_data_all_subjs):
     print(stats.spearmanr(list(freq_dict.keys()), normalized))
 
 def landing_pos_word_len(et_data_all_subjs):
-    char_freq = pd.read_csv("letter_freq_dk.csv", header=0)
-    chars = et_data_all_subjs.word_landing_position_char.tolist()
-    chars = [str(x) for x in chars if str(x) != 'nan']
 
     wl_dict = {}
-    #wl_dict_chars = {}
 
     for idx,row in et_data_all_subjs.iterrows():
-        #print(row.word_landing_position_char)
-        if row.word_landing_position_index >= 0:
+        if row.landing_position >= 0:
             wl = len(row.word)
             #print(row.word, wl, row.word_landing_position_index)
             if wl not in wl_dict:
-                wl_dict[wl] = [row.word_landing_position_index]
+                wl_dict[wl] = [row.landing_position]
             else:
-                wl_dict[wl].append(row.word_landing_position_index)
+                wl_dict[wl].append(row.landing_position)
 
     means = []
     for x,y in wl_dict.items():
@@ -278,10 +276,9 @@ def landing_pos_word_len(et_data_all_subjs):
     print(stats.spearmanr(list(wl_dict.keys()), means))
 
 
-
 def main():
 
-    indir = 'word_feature_reports/'
+    indir = 'ExtractedFeatures/'
 
     skipping_proportions = pd.DataFrame(columns=["subj", "word_len", "skip"])
     skipping_proportions_freq = pd.DataFrame(columns=["subj", "word_freq", "skip"])
@@ -290,33 +287,36 @@ def main():
     for file in os.listdir(indir):
         if file.endswith(".csv"):
             subject = file[:3]
-            et_data = pd.read_csv(os.path.join(indir, file))
-            # remove practice trials
-            et_data = et_data.drop(et_data[et_data.speechId == 1327].index)
-            # remove beginning of speech trials
-            et_data = et_data.drop(et_data[et_data.paragraphId == -1].index)
-            et_data_all_subjs = pd.concat([et_data_all_subjs, et_data])
+            if int(subject[-2:]) <= 22: # <=22 for typical readers, >=23 for dyslexic participants
+                et_data = pd.read_csv(os.path.join(indir, file), converters={"char_IA_ids": literal_eval})
+                # remove practice trials
+                et_data = et_data.drop(et_data[et_data.speechId == 1327].index)
+                # remove beginning of speech trials
+                et_data = et_data.drop(et_data[et_data.paragraphId == -1].index)
+                et_data_all_subjs = pd.concat([et_data_all_subjs, et_data])
 
+                wl_skip = word_length_effect(et_data, subject)
+                wf_skip = word_freq_effect(et_data, subject)
+                #first_char_analysis(et_data, subject)
 
-            wl_skip = word_length_effect(et_data, subject)
-            wf_skip = word_freq_effect(et_data, subject)
-            #first_char_analysis(et_data, subject)
+                for k,v in wl_skip.items():
+                    skipping_proportions = skipping_proportions.append({"subj":subject, "word_len":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
+                for k,v in wf_skip.items():
+                    skipping_proportions_freq = skipping_proportions_freq.append({"subj":subject, "word_freq":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
 
-            for k,v in wl_skip.items():
-                skipping_proportions = skipping_proportions.append({"subj":subject, "word_len":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
-            for k,v in wf_skip.items():
-                skipping_proportions_freq = skipping_proportions_freq.append({"subj":subject, "word_freq":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
+    # Basic data validation
+    plot_word_len_effect(skipping_proportions)
+    plot_word_freq_effect(skipping_proportions_freq)
+    plot_feat_ranges(et_data_all_subjs)
 
+    # Landing position analyses
+    plot_landing_position(et_data_all_subjs)
+    first_char_analysis(et_data_all_subjs, "ALL")
+    landing_pos_freq(et_data_all_subjs)
+    landing_pos_word_len(et_data_all_subjs)
 
-    #plot_word_len_effect(skipping_proportions)
-    #plot_word_freq_effect(skipping_proportions_freq)
-    #plot_feat_ranges(et_data_all_subjs)
-    #print(et_data_all_subjs['word_landing_position_index'].unique())
-    #plot_landing_position(et_data_all_subjs)
-    #first_char_analysis(et_data_all_subjs, "ALL")
-    #landing_pos_freq(et_data_all_subjs)
-    #landing_pos_word_len(et_data_all_subjs)
-    print(np.nanmean(et_data_all_subjs['number_of_fixations'].tolist()), np.nanstd(et_data_all_subjs['number_of_fixations'].tolist()))
+    # Total number of fixations across all participants
+    print(et_data_all_subjs['number_of_fixations'].sum)
 
 
 
