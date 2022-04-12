@@ -13,6 +13,8 @@ This script includes calculation of text and sentence length.
 
 ## Feature extraction from fixation reports
 
+The extracted features can be found in `ExtractedFeatures/`, but if required you can also re-run the code to add additional features: 
+
 1. Convert SR DataViewer output files to UTF-8 for correct representation of Danish characters:  
 `iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt`
 

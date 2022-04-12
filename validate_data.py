@@ -130,28 +130,22 @@ def word_length_effect(et_data, subject):
     return word_lengths_skip
 
 def plot_word_len_effect(skipping_proportions):
-    #ax = sns.lineplot(data=skipping_proportions, x="word_len", y="skip", units="subj", estimator=None, lw=1, alpha=0.3)
     ax = sns.lineplot(data=skipping_proportions, x="word_len", y="skip", ci="sd", label="mean")
 
     plt.ylim(0,1)
     plt.xlim(1,25)
     plt.legend([],[], frameon=False)
-    #plt.title("Word length effect")
     plt.xlabel("word length")
     plt.ylabel("skipping proportion")
     plt.savefig("plots/word_length_effect_copco.pdf")
     plt.show()
 
 def plot_word_freq_effect(skipping_proportions):
-    #ax = sns.lineplot(data=skipping_proportions, x="word_len", y="skip", units="subj", estimator=None, lw=1, alpha=0.3)
     ax = sns.lineplot(data=skipping_proportions, x="word_freq", y="skip", ci="sd", label="mean")
 
     plt.ylim(0.2,1)
     plt.xlim(0,0.031)
-    plt.gca().invert_xaxis()
-    #ax.set_xticklabels([7,6,5,4,3])
     plt.legend([],[], frameon=False)
-    #plt.title("Word length effect")
     plt.xlabel("word frequency")
     plt.ylabel("skipping proportion")
     plt.savefig("plots/word_freq_effect_copco.pdf")
@@ -307,13 +301,15 @@ def main():
     # Basic data validation
     plot_word_len_effect(skipping_proportions)
     plot_word_freq_effect(skipping_proportions_freq)
-    plot_feat_ranges(et_data_all_subjs)
+    #plot_feat_ranges(et_data_all_subjs)
 
     # Landing position analyses
+    """
     plot_landing_position(et_data_all_subjs)
     first_char_analysis(et_data_all_subjs, "ALL")
     landing_pos_freq(et_data_all_subjs)
     landing_pos_word_len(et_data_all_subjs)
+    """
 
     # Total number of fixations across all participants
     print(et_data_all_subjs['number_of_fixations'].sum)
