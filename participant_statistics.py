@@ -7,7 +7,7 @@ from scipy import stats
 # Calculate basic statistics for each participant
 # Reads the file 'RESULTS_FILE.txt' generated for each participant by EyeLink
 
-# usage: python participant_statistics.py /path/to/eyetrackingdata/
+# usage: python participant_statistics.py /path/to/raweyetrackingdata/
 
 def comprehension_score(results_df):
     """Calculate the comprehension score (avergage accuracy of all answered questions)"""
@@ -35,13 +35,13 @@ def reading_time(results_df):
     return avg_absolute_reading_times, avg_relative_reading_times
 
 
-def add_dyslexia_info(df_participants):
+def add_demographic_info(df_participants):
 
-    dyslexia_ids = {"P00": "no", "P01": "no", "P02": "no", "P03": "no", "P04": "no", "P05": "no", "P06": "no", "P07": "no", "P08": "no", "P09": "no", "P10": "no", "P11": "no", "P12": "no", "P13": "no", "P14": "no", "P15": "no", "P16": "no", "P17": "no", "P18": "no", "P19": "no", "P20": "no", "P21": "no", "P22": "no", "P23": "yes", "P24": "yes", "P25": "yes", "P26": "yes", "P27": "yes", "P28": "yes", "P29": "yes", "P30": "yes"}
+    info = pd.read_csv("./utils/participant_details.csv", delimiter=";")
+    df_participants = pd.merge(df_participants, info, on='subj')
 
-    for id, dys in dyslexia_ids.items():
-        df_participants.loc[df_participants['subj'] == id, "dyslexia"] = dys
     return df_participants
+
 
 def main():
 
@@ -52,7 +52,7 @@ def main():
     questions = []
     speeches = []
     for item in os.listdir(data_dir):
-        if "P" in item:
+        if "P" in item: # and int(item[-2:]) >=23: # <=22 for typical readers, >=23 for dyslexic participants
             speeches_read = []
             subject_id = item
             results_file_path = os.path.join(data_dir, item, 'RESULTS_FILE.txt')
@@ -64,38 +64,31 @@ def main():
             results = results[results.paragraphid != -1]
 
             avg_accruacy, question_no = comprehension_score(results)
-            #print(subject_id, avg_accruacy, question_no)
             comprehension_accs.append(avg_accruacy)
             questions.append(question_no)
 
             abs_read_time, rel_read_time = reading_time(results)
-            #print(subject_id, abs_read_time, rel_read_time)
-
             speeches_read = list(set(results['speechid'].values))
 
             participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': "{:.2f}".format(avg_accruacy), 'number_of_speeches': len(speeches_read), 'number_of_questions': question_no, 'absolute_reading_time': "{:.2f}".format(abs_read_time), 'relative_reading_time':"{:.2f}".format(rel_read_time)}, ignore_index=True)
             speeches_read_all += speeches_read
             speeches.append(len(speeches_read))
 
-
+    participant_stats = add_demographic_info(participant_stats)
     print(participant_stats.sort_values('subj'))
-    participant_stats = add_dyslexia_info(participant_stats)
-    print(participant_stats)
+
     print("Correlation between comprehension accuracy and reading time:")
     print(stats.spearmanr(participant_stats['comprehension_accuracy'], participant_stats['absolute_reading_time']))
-    #print(np.std(participant_stats['absolute_reading_time'].astype(float).tolist()))
 
     print("OUTLIERS:")
     max = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) + 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
     min = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) - 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
     for idx, row in participant_stats.iterrows():
-        #print(row.absolute_reading_time)
-        #print(max, min)
         if float(row.absolute_reading_time) > max or float(row.absolute_reading_time) < min:
             print(row.subj)
 
-    print("MEANS (compr. acc, no. of speeches, no. of questions):")
-    print(np.mean(comprehension_accs), np.mean(speeches), np.mean(questions))
+    print("MEANS (compr. acc, no. of speeches, no. of questions, reading time, age):")
+    print(np.mean(comprehension_accs), np.mean(speeches), np.mean(questions), np.mean(participant_stats['absolute_reading_time'].astype('float').tolist()), np.nanmean(participant_stats['age'].tolist()))
     print("TOTAL (no. of speeches, no. of questions):")
     print(len(speeches_read_all), sum(questions))
     participant_stats.to_csv("participant_stats.csv", index=False)
