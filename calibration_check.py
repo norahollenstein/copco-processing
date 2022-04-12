@@ -8,13 +8,12 @@ import numpy as np
 
 # uncomment print lines below for details on calibration accuracy
 
-
 def check_calibration():
 
     data_dir = "RawData/"
     subject_calibration_dict = {}
     for item in os.listdir(data_dir):
-        if "P3" in item:
+        if "P" in item:
             speeches_read = []
             subject_id = item
             edf_file_path = os.path.join(data_dir, item, subject_id+'.edf')
@@ -34,6 +33,7 @@ def check_calibration():
                         avg_error = results[7]
                         max_error = results[9]
                         end_of_validation = line[-250:]
+                        #print(end_of_validation)
                         if "EXPERIMENT_CONTINUE" in end_of_validation:
                             if "GOOD" in validation_outcome:
                                 #print(eye, grade, avg_error, max_error)
