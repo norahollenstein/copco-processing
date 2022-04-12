@@ -81,6 +81,7 @@ def main():
     print(stats.spearmanr(participant_stats['comprehension_accuracy'], participant_stats['absolute_reading_time']))
 
     print("OUTLIERS:")
+    # outliers: participants that have a reading time that deviates more than 2*std from the mean of all participants
     max = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) + 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
     min = np.mean(participant_stats['absolute_reading_time'].astype(float).tolist()) - 2*np.std(participant_stats['absolute_reading_time'].astype(float).tolist())
     for idx, row in participant_stats.iterrows():
