@@ -19,7 +19,7 @@ from ast import literal_eval
 #test omission rate/skipping
 
 def first_char_analysis(et_data, subject):
-    """Analyze dwell time on the first character between vowels and consonants"""
+    """Analyze fixation duration on the first character between vowels and consonants"""
 
     dwell_time_vowels = {}
     dwell_time_punct = {}
@@ -54,13 +54,15 @@ def first_char_analysis(et_data, subject):
 
     flat_vowel_list = [item for sublist in dwell_time_vowels.values() for item in sublist]
     flat_cons_list = [item for sublist in dwell_time_consonants.values() for item in sublist]
+    flat_punct_list = [item for sublist in dwell_time_punct.values() for item in sublist]
     print("vowels mean:", np.mean(flat_vowel_list), len(flat_vowel_list))
     print("consonants mean:", np.mean(flat_cons_list), len(flat_cons_list))
+    print("punctuation/special symbols mean:", np.mean(flat_punct_list), len(flat_punct_list))
     print(scipy.stats.ttest_ind(flat_vowel_list, flat_cons_list))
 
 
 def word_freq_effect(et_data, subject):
-    """Analyze word length effect"""
+    """Analyze word frequency effect: Are less frequent words fixated more often?"""
 
     word_freqs_ffd = {}
     word_freqs_tft = {}
@@ -98,7 +100,7 @@ def word_freq_effect(et_data, subject):
     return word_freqs_skip
 
 def word_length_effect(et_data, subject):
-    """Analyze word length effect"""
+    """Analyze word length effect: Are longer words (i.e., more characters) fixated more often?"""
 
     word_lengths_ffd = {}
     word_lengths_tft = {}
@@ -109,13 +111,13 @@ def word_length_effect(et_data, subject):
         word_len = len(word.word)
         if not math.isnan(word.word_first_fix_dur):
             if word_len not in word_lengths_skip:
-                #word_lengths_ffd[word_len] = [word.word_first_fixation_duration]
-                #word_lengths_tft[word_len] = [word.word_total_fix_time]
+                #word_lengths_ffd[word_len] = [word.word_first_fix_dur]
+                #word_lengths_tft[word_len] = [word.word_total_fix_dur]
                 # skiped: (skiped words of this length, total no. of words of this length)
                 word_lengths_skip[word_len] = [1,1]
             else:
-                #word_lengths_ffd[word_len].append(word.word_first_fixation_duration)
-                #word_lengths_tft[word_len].append(word.word_total_fix_time)
+                #word_lengths_ffd[word_len].append(word.word_first_fix_dur)
+                #word_lengths_tft[word_len].append(word.word_total_fix_dur)
                 word_lengths_skip[word_len][0] += 1
                 word_lengths_skip[word_len][1] += 1
         else:
@@ -135,10 +137,11 @@ def plot_word_len_effect(skipping_proportions):
     plt.ylim(0,1)
     plt.xlim(1,25)
     plt.legend([],[], frameon=False)
-    plt.xlabel("word length")
-    plt.ylabel("skipping proportion")
+    plt.xlabel("word length", fontsize=16)
+    plt.ylabel("skipping proportion", fontsize=16)
     plt.savefig("plots/word_length_effect_copco.pdf")
     plt.show()
+
 
 def plot_word_freq_effect(skipping_proportions):
     ax = sns.lineplot(data=skipping_proportions, x="word_freq", y="skip", ci="sd", label="mean")
@@ -146,20 +149,23 @@ def plot_word_freq_effect(skipping_proportions):
     plt.ylim(0.2,1)
     plt.xlim(0,0.031)
     plt.legend([],[], frameon=False)
-    plt.xlabel("word frequency")
-    plt.ylabel("skipping proportion")
+    plt.xlabel("word frequency", fontsize=16)
+    plt.ylabel("skipping proportion", fontsize=16)
     plt.savefig("plots/word_freq_effect_copco.pdf")
     plt.show()
 
+
 def plot_feat_ranges(et_data_all_subjs):
+    """Generate box plots of the feature value distributions"""
 
     features = ["word_first_fix_dur", "word_mean_fix_dur", "word_total_fix_dur", "word_first_pass_dur", "word_go_past_time"]#, "word_mean_sacc_dur", "word_peak_sacc_velocity"]
-    #features = ["number_of_fixations"] # "number_of_fixations"
+    #features = ["number_of_fixations"]
 
     sns.set(font_scale = 1)
     sns.set_style("whitegrid")
 
     print(len(et_data_all_subjs))
+    # remove fixations shorter than 100 ms
     et_data_all_subjs.drop(et_data_all_subjs[et_data_all_subjs.word_mean_fix_dur < 100].index, inplace=True)
     print(len(et_data_all_subjs))
 
@@ -175,7 +181,7 @@ def plot_feat_ranges(et_data_all_subjs):
     for tick,label in zip(pos,ax.get_xticklabels()):
         ax.text(pos[tick], -220, median_labels[tick], #medians[tick] + offsets[tick]
                 horizontalalignment='center', size='small', color='black')#, weight='semibold')
-    ax.set_xticklabels(["FFD", "MFD", "TFD", "FPD", "GPT"])
+    ax.set_xticklabels(["FFD", "MFD", "TFD", "FPD", "GPT"], fontsize=16)
     plt.ylim(0,2000)
     plt.savefig("plots/feature_ranges_copco.pdf")
     plt.show()
@@ -183,6 +189,7 @@ def plot_feat_ranges(et_data_all_subjs):
 
 
 def plot_landing_position(et_data_all_subjs):
+    """Generate bar plot of landing position index vs. occurrences"""
 
     all_df = pd.DataFrame(columns = ['position', 'count'])
     for n in et_data_all_subjs['landing_position'].unique():
@@ -301,7 +308,7 @@ def main():
     # Basic data validation
     plot_word_len_effect(skipping_proportions)
     plot_word_freq_effect(skipping_proportions_freq)
-    #plot_feat_ranges(et_data_all_subjs)
+    plot_feat_ranges(et_data_all_subjs)
 
     # Landing position analyses
     """
