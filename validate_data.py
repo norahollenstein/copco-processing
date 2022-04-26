@@ -179,8 +179,8 @@ def plot_feat_ranges(et_data_all_subjs):
 
     pos = range(len(median_labels))
     for tick,label in zip(pos,ax.get_xticklabels()):
-        ax.text(pos[tick], -220, median_labels[tick], #medians[tick] + offsets[tick]
-                horizontalalignment='center', size='small', color='black')#, weight='semibold')
+        ax.text(pos[tick], -250, median_labels[tick], #medians[tick] + offsets[tick]
+                horizontalalignment='center', size='small', color='black', fontsize=14)#, weight='semibold')
     ax.set_xticklabels(["FFD", "MFD", "TFD", "FPD", "GPT"], fontsize=16)
     plt.ylim(0,2000)
     plt.savefig("plots/feature_ranges_copco.pdf")
@@ -306,8 +306,8 @@ def main():
                     skipping_proportions_freq = skipping_proportions_freq.append({"subj":subject, "word_freq":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
 
     # Basic data validation
-    plot_word_len_effect(skipping_proportions)
-    plot_word_freq_effect(skipping_proportions_freq)
+    #plot_word_len_effect(skipping_proportions)
+    #plot_word_freq_effect(skipping_proportions_freq)
     plot_feat_ranges(et_data_all_subjs)
 
     # Landing position analyses
