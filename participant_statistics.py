@@ -17,6 +17,24 @@ def comprehension_score(results_df):
 
     return average_accuracy, len(questions)
 
+def wpm_rate(results_df):
+    """Calculate the word per minute rate"""
+
+    # reading time per screen in seconds (sampling rate 1000Hz)
+    absolute_reading_times = results_df['SENTENCE_RT']/1000
+    avg_absolute_reading_times = np.mean(absolute_reading_times)
+
+    wpms = []
+    for text, text_time in zip(results_df['text'], absolute_reading_times):
+        text = text.split()
+        words = len(text)
+        wpm = words * (60/text_time)
+        # exclude screens that were skipped by mistake
+        if not wpm > 1000:
+            wpms.append(wpm)
+    avg_wpm = np.mean(wpms)
+
+    return avg_wpm
 
 def reading_time(results_df):
     """Extract the absolute reading time (seconds spent on each screen) and normalized by number of words on the screen"""
@@ -52,7 +70,7 @@ def main():
     questions = []
     speeches = []
     for item in os.listdir(data_dir):
-        if "P" in item: # and int(item[-2:]) >=23: # <=22 for typical readers, >=23 for dyslexic participants
+        if "P" in item: # and int(item[-2:]) <=22: # <=22 for typical readers, >=23 for dyslexic participants
             speeches_read = []
             subject_id = item
             results_file_path = os.path.join(data_dir, item, 'RESULTS_FILE.txt')
@@ -68,14 +86,17 @@ def main():
             questions.append(question_no)
 
             abs_read_time, rel_read_time = reading_time(results)
+            subj_wpm_rate = wpm_rate(results)
             speeches_read = list(set(results['speechid'].values))
 
-            participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': "{:.2f}".format(avg_accruacy), 'number_of_speeches': len(speeches_read), 'number_of_questions': question_no, 'absolute_reading_time': "{:.2f}".format(abs_read_time), 'relative_reading_time':"{:.2f}".format(rel_read_time)}, ignore_index=True)
+            participant_stats = participant_stats.append({'subj': subject_id, 'comprehension_accuracy': "{:.2f}".format(avg_accruacy), 'number_of_speeches': len(speeches_read), 'number_of_questions': question_no, 'absolute_reading_time': "{:.2f}".format(abs_read_time), 'relative_reading_time':"{:.2f}".format(rel_read_time), 'words_per_minute':"{:.2f}".format(subj_wpm_rate)}, ignore_index=True)
             speeches_read_all += speeches_read
             speeches.append(len(speeches_read))
 
     participant_stats = add_demographic_info(participant_stats)
     print(participant_stats.sort_values('subj'))
+
+    print("Average WPM:", participant_stats['words_per_minute'].astype(float).mean())
 
     print("Correlation between comprehension accuracy and reading time:")
     print(stats.spearmanr(participant_stats['comprehension_accuracy'], participant_stats['absolute_reading_time']))
