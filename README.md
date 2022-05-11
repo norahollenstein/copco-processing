@@ -21,11 +21,10 @@ The extracted features can be found in `ExtractedFeatures/`, but if required you
 `iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt`
 
 3. Create a mapping from character interest areas to word interest areas:  
-`python char2word_mapping.py`
-
+`python char2word_mapping.py`  
 In order to complete this step it is necessary to deploy the experiment in the SR ExperimentBuilder twice, once with automatic segmentation of text into individual characters as areas of interest, and once with word segmentation as areas of interest. The script `char2word_mapping.py` will align the characters to the words.
 
-3. Extract word-level and character-level features with
+4. Extract word-level and character-level features with
 `python extract_features.py`  
 This outputs new CSV files in `ExtractedFeatures/`.  
 These files can also be downloaded directly from the [OSF repository](https://osf.io/ud8s5/).
