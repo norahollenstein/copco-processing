@@ -11,14 +11,17 @@ This script checks the calibration accuracy of all participants.
 `python speech_statistics.py`  
 This script includes calculation of text and sentence length.
 
-## Feature extraction from fixation reports
+## Feature extraction from fixation and interest area reports
 
 The extracted features can be found in `ExtractedFeatures/`, but if required you can also re-run the code to add additional features: 
 
-1. Use the DataViewer software from SR Research to convert the recorded EDF files to fixation reports in TXT format. 
+1. Use the DataViewer software from SR Research to convert the recorded EDF files to fixation reports and interest area reports in TXT format. 
 
 2. Convert SR DataViewer output files to UTF-8 for correct representation of Danish special characters:  
-`iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt`
+`iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt`  
+`iconv -f ISO-8859-1 -t UTF-8 IA_report_P10.txt > IA_report_P10-utf8.txt`
+
+These files are also available in the [OSF repository](https://osf.io/ud8s5/) (original and UTF-8 versions) in the folders FixationReports and InterestAreaReports.
 
 3. Create a mapping from character interest areas to word interest areas:  
 `python char2word_mapping.py`  
