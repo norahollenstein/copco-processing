@@ -50,10 +50,14 @@ for file in os.listdir(report_dir):
                 char_map[cidx+1] = c
 
             part = get_part(trial_data['speechid'].unique()[0])
-            word_ias = pd.read_csv('aois/new_aois/part'+part+'_IA_'+str(trial_data.speechid.values[0]).strip()+'_'+str(trial_data.paragraphid.values[0]).strip()+'_words.ias', delimiter="\t", header=None)
+            #word_ias = pd.read_csv('aois/new_aois/part'+part+'_IA_'+str(trial_data.speechid.values[0]).strip()+'_'+str(trial_data.paragraphid.values[0]).strip()+'_words.ias', delimiter="\t", header=None)
+            word_ias = pd.read_csv('aois/new_aois_fixed_first_last/part'+part+'_IA_'+str(trial_data.speechid.values[0]).strip()+'_'+str(trial_data.paragraphid.values[0]).strip()+'_words.ias', delimiter="\t", header=None, index_col=False, names=["type", "number", "left", "top", "right", "bottom", "label"])
+            # remove interest areas from trials with comprehension questions
+            word_ias = word_ias[~word_ias['type'].str.startswith("-")]
+
             trial_char_ind = 1
 
-            for widx, word in enumerate(word_ias[6].values):
+            for widx, word in enumerate(word_ias["label"].values):
                 word2char[widx+1] = []
                 for c in word:
                     if char_map[trial_char_ind] == c:
@@ -65,9 +69,10 @@ for file in os.listdir(report_dir):
                 word_data_df = pd.DataFrame(word_data, columns=['part', 'trialId','speechId', 'paragraphId', 'wordId', 'word', 'characters', 'char_IA_ids'])
                 trial_areas_df = pd.concat([trial_areas_df, word_data_df])
 trial_areas_df.drop_duplicates(inplace=True)
-print(len(trial_areas_df))
+
 trial_areas_df.reset_index(inplace=True)
-# split sentences to add sentence char_IA_ids
+# split sentences to add sentence ids
 sentence_ids = split_sentences(trial_areas_df)
 trial_areas_df['sentenceId'] = sentence_ids
+print(len(trial_areas_df), "interest areas.")
 trial_areas_df.to_csv("word2char_IA_mapping.csv", index=False, encoding='utf-8')
