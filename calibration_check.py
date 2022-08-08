@@ -3,7 +3,8 @@ import sys
 import pandas as pd
 import numpy as np
 
-# Check the calibration results of each participant from the .EDF files
+# A really rough calibration checker
+# Checks the calibration results of each participant from the .EDF files based on simple pattern matching
 # usage: python calibration_check.py RawData/
 
 # uncomment print lines below for details on calibration accuracy
@@ -17,8 +18,10 @@ def check_calibration():
             speeches_read = []
             subject_id = item
             edf_file_path = os.path.join(data_dir, item, subject_id+'.edf')
+            print(edf_file_path)
 
-            with open(edf_file_path, mode='r', encoding='mac_roman') as file: # b is important -> binary
+            with open(edf_file_path, mode='r', encoding='mac_roman') as file:
+
                 edf_lines = file.readlines()
                 blocks = 0
 
@@ -33,7 +36,6 @@ def check_calibration():
                         avg_error = results[7]
                         max_error = results[9]
                         end_of_validation = line[-250:]
-                        #print(end_of_validation)
                         if "EXPERIMENT_CONTINUE" in end_of_validation:
                             if "GOOD" in validation_outcome:
                                 #print(eye, grade, avg_error, max_error)
@@ -52,6 +54,8 @@ def check_calibration():
                                 blocks += 1
                                 outcome = "POOR"
                             subject_calibration_dict[subject_id].append(outcome)
+                if not subject_calibration_dict[subject_id]:
+                    print(subject_id, "No EXPERIMENT_CONTINUE flag found." )
     print("----")
     for x, y in subject_calibration_dict.items():
         print(x,y)
