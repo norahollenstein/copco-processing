@@ -13,6 +13,7 @@ def comprehension_score(results_df):
     """Calculate the comprehension score (avergage accuracy of all answered questions)"""
 
     questions = results_df.loc[results_df['question'] != "NO QUESTION"]
+    print(sum(questions['QUESTION_ACCURACY']), len(questions))
     average_accuracy = sum(questions['QUESTION_ACCURACY'])/len(questions)
 
     return average_accuracy, len(questions)
@@ -55,7 +56,8 @@ def reading_time(results_df):
 
 def add_demographic_info(df_participants):
 
-    info = pd.read_csv("./utils/participant_details.csv", delimiter=";")
+    info = pd.read_excel("./utils/ParticipantOverviewAnonymized.xlsx", usecols=["age", "sex", "dyslexia", "subj", "native_language", "score_reading_comprehension_test", "vision"])
+    #print(info)
     df_participants = pd.merge(df_participants, info, on='subj')
 
     return df_participants
@@ -70,7 +72,8 @@ def main():
     questions = []
     speeches = []
     for item in os.listdir(data_dir):
-        if "P" in item: # and int(item[-2:]) <=22: # <=22 for typical readers, >=23 for dyslexic participants
+        #if "P" in item: # and int(item[-2:]) <=22: # <=22 for typical readers, >=23 for dyslexic participants
+        if item.startswith("P"):
             speeches_read = []
             subject_id = item
             results_file_path = os.path.join(data_dir, item, 'RESULTS_FILE.txt')
@@ -81,6 +84,7 @@ def main():
             # remove beginning of speech trials
             results = results[results.paragraphid != -1]
 
+            #print(results.Session_Name_.unique())
             avg_accruacy, question_no = comprehension_score(results)
             comprehension_accs.append(avg_accruacy)
             questions.append(question_no)
