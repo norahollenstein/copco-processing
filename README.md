@@ -8,7 +8,7 @@ This script includes calculation of comprehension scores and overall reading tim
 This script checks the calibration accuracy of all participants. 
 
 ## Dataset statistics
-`python speech_statistics.py`  
+`python texts_statistics.py`  
 This script includes calculation of text and sentence length.
 
 ## Feature extraction from fixation and interest area reports
