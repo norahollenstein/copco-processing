@@ -18,7 +18,7 @@ def check_calibration():
             speeches_read = []
             subject_id = item
             edf_file_path = os.path.join(data_dir, item, subject_id+'.edf')
-            print(edf_file_path)
+            #print(edf_file_path)
 
             with open(edf_file_path, mode='r', encoding='mac_roman') as file:
 
@@ -35,7 +35,8 @@ def check_calibration():
                         grade = results[5]
                         avg_error = results[7]
                         max_error = results[9]
-                        end_of_validation = line[-250:]
+                        end_of_validation = line
+                        #print(end_of_validation)
                         if "EXPERIMENT_CONTINUE" in end_of_validation:
                             if "GOOD" in validation_outcome:
                                 #print(eye, grade, avg_error, max_error)

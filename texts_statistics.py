@@ -79,20 +79,25 @@ def main():
     all_token_lenghts = []
     for id in ids:
         print(id)
+        # add info about text types
+        if str(id).startswith("2022"):
+            text_type = "Wikipedia"
+        else:
+             text_type = "DanskeTaler"
         speech = speeches.loc[speeches['SpeechID'] == id]
         frequency_prop = get_freq_proportion(speech)
         sentences, tokens_per_speech, types_per_speech, types, tokens_per_sent, avg_token_length, tokens_in_sent, token_lenghts = get_speech_length(speech)
         all_types += types
         all_tokens_in_sent += tokens_in_sent
         all_token_lenghts += token_lenghts
-        speech_stats = speech_stats.append({'id': id, 'frequency_prop': frequency_prop, 'number_of_sents': sentences, 'tokens_per_speech':tokens_per_speech, 'types_per_speech':types_per_speech, 'tokens_per_sent':tokens_per_sent, 'avg_token_length':avg_token_length}, ignore_index=True)
+        speech_stats = speech_stats.append({'id': id, 'frequency_prop': frequency_prop, 'number_of_sents': sentences, 'tokens_per_speech':tokens_per_speech, 'types_per_speech':types_per_speech, 'tokens_per_sent':tokens_per_sent, 'avg_token_length':avg_token_length, 'text_type':text_type}, ignore_index=True)
 
     sorted_speech_stats = speech_stats.sort_values(by=["id"])
     print(sorted_speech_stats)
     print("MEANS/TOTAL:")
     print(all_token_lenghts)
     print(speech_stats['frequency_prop'].mean(), speech_stats['number_of_sents'].sum(), speech_stats['tokens_per_speech'].sum(), len(list(set(all_types))), np.mean(all_tokens_in_sent), np.std(all_tokens_in_sent), min(all_tokens_in_sent), max(all_tokens_in_sent), np.mean(all_token_lenghts), np.std(all_token_lenghts), min(all_token_lenghts), max(all_token_lenghts))
-    sorted_speech_stats.to_csv("texts_stats.csv")
+    sorted_speech_stats.to_csv("texts_stats.csv", index=False)
 
 
 if __name__ == '__main__':

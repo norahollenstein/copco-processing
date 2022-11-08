@@ -56,7 +56,7 @@ def reading_time(results_df):
 
 def add_demographic_info(df_participants):
 
-    info = pd.read_excel("./utils/ParticipantOverviewAnonymized.xlsx", usecols=["age", "sex", "dyslexia", "subj", "native_language", "score_reading_comprehension_test", "vision"])
+    info = pd.read_excel("./utils/ParticipantOverviewAnonymized.xlsx", usecols=["age", "sex", "dyslexia", "subj", "native_language", "score_reading_comprehension_test", "vision", "pseudohomophone_score"])
     #print(info)
     df_participants = pd.merge(df_participants, info, on='subj')
 
@@ -72,7 +72,7 @@ def main():
     questions = []
     speeches = []
     for item in os.listdir(data_dir):
-        #if "P" in item: # and int(item[-2:]) <=22: # <=22 for typical readers, >=23 for dyslexic participants
+        #if "P" in item and int(item[-2:]) >22 and  int(item[-2:]) <=41: #  and int(item[-2:]) <=22: # <=22 for typical readers, >=23 for dyslexic participants
         if item.startswith("P"):
             speeches_read = []
             subject_id = item
@@ -117,7 +117,8 @@ def main():
     print(np.mean(comprehension_accs), np.mean(speeches), np.mean(questions), np.mean(participant_stats['absolute_reading_time'].astype('float').tolist()), np.nanmean(participant_stats['age'].tolist()))
     print("TOTAL (no. of speeches, no. of questions):")
     print(len(speeches_read_all), sum(questions))
-    participant_stats.to_csv("participant_stats.csv", index=False)
+    sorted_participant_stats = participant_stats.sort_values(by=["subj"])
+    sorted_participant_stats.to_csv("participant_stats.csv", index=False)
 
     print("Total speeches read: ", len(speeches_read_all))
     print("Unique speeches read: ", len(set(speeches_read_all)))

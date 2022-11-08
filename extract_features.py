@@ -8,22 +8,33 @@ import sys
 
 def get_experiment_part(speechid):
     #print(speechid)
-    experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526]}
+    # only danske taler speeches
+    #experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526]}
+    # with wikipedia articles
+    experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682, 202150, 202151, 202152, 202204, 202205, 202206], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526, 202201, 202202, 202203, 202207, 202208, 202209]}
     for k,v in experiment_parts.items():
         if speechid in v:
             part = k
     return part
 
-
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
 report_dir = "FixationReports/"
 output_dir = "ExtractedFeatures/"
 
+TOTAL_FIX = 0
+ALL_FIX_IN_IA = 0
+UNMAPPED = 0
+DIST = 0
+WORDS = 0
+
 for file in os.listdir(report_dir):
-    if file.endswith("-utf8.txt"):
+    if file.startswith("FIX_report"):
+
         print(file)
-        data = pd.read_csv(report_dir+file, delimiter="\t", converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})
+        data = pd.read_csv(report_dir+file, delimiter="\t", quotechar='"', doublequote=False, converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})
         print("Texts:", data['speechid'].unique())
+
+        TOTAL_FIX += len(data)
 
         # remove practice speech with ID 1327 and trials with ID -1 (new text screen)
         data = data.drop(data[data.speechid == 1327].index)
@@ -55,21 +66,17 @@ for file in os.listdir(report_dir):
             # especially the for the first and last line on the screen. the interest areas of these lines seems to be of shorter height than the rest.
             # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
 
-            #print(trial_no, experiment_parts[0], trial_data.speechid.unique(), trial_data.paragraphid.unique())
             trial_word_data = word2char_mapping[(word2char_mapping["trialId"] == trial_no) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
-            #print(trial_word_data)
             # drop ID -1 here too (new text screen)
             trial_word_data = trial_word_data.drop(trial_word_data[trial_word_data.paragraphId == -1].index)
-            # drop column that are not needed
+            # drop columns that are not needed
             trial_word_data = trial_word_data.drop('characters', axis=1)
             # rest index column
             trial_word_data.reset_index(drop=True, inplace=True)
-            #print(trial_word_data)
 
             # initialize word-level eye-tracking features
             # set initial feature values to nan, 0 or empty list
-
-            # fixation features
+            # fixation features:
             trial_word_data.loc[:, 'word_total_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_mean_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_first_pass_dur'] = np.NaN
@@ -80,8 +87,7 @@ for file in os.listdir(report_dir):
             trial_word_data['fixation_durs'] = [list() for x in range(len(trial_word_data.index))]
             trial_word_data['fixed_chars'] = [list() for x in range(len(trial_word_data.index))]
             trial_word_data['trial_fix_ids'] = [list() for x in range(len(trial_word_data.index))]
-
-            # saccade features
+            # saccade features:
             trial_word_data.loc[:, 'word_mean_sacc_dur'] = np.NaN
             trial_word_data.loc[:, 'word_peak_sacc_velocity'] = np.NaN
             trial_word_data['saccade_durs'] = [list() for x in range(len(trial_word_data.index))]
@@ -89,9 +95,11 @@ for file in os.listdir(report_dir):
 
             # iterate through all fixations in a trial
             for fix_id, fix_info in trial_data.iterrows():
-                # check that current fuxation falls on text
+                # check that current fixation falls on text
                 if fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'] != ".":
+                    ALL_FIX_IN_IA += 1
                     for widx, char_id_list in enumerate(trial_word_data['char_IA_ids']):
+                        # this only takes the first IA, therefore all IAs falling on a question are automatically out
                         if int(fix_info['CURRENT_FIX_INTEREST_AREA_ID']) in char_id_list:
                             if np.isnan(trial_word_data.at[widx, 'word_total_fix_dur']):
                                 trial_word_data.at[widx, 'word_total_fix_dur'] = fix_info['CURRENT_FIX_DURATION']
@@ -109,6 +117,11 @@ for file in os.listdir(report_dir):
                             if fix_info['NEXT_SAC_DURATION'] != ".":
                                 trial_word_data.at[widx, 'saccade_durs'].append(int(fix_info['NEXT_SAC_DURATION']))
                                 trial_word_data.at[widx, 'saccade_vels'].append(float(fix_info['NEXT_SAC_PEAK_VELOCITY'].replace(',', '.')))
+                else:
+                    UNMAPPED += 1
+                    if fix_info['CURRENT_FIX_NEAREST_INTEREST_AREA'] in char_id_list:
+                        if float(fix_info['CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE'].replace(',', '.')) < 1:
+                            DIST += 1
 
             # now process word features that need previously added fixation features
             fixations_to_left_of_curr_fix = []
@@ -154,4 +167,13 @@ for file in os.listdir(report_dir):
             words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         # reorder columns
         words_df = words_df[['part','trialId','speechId','paragraphId','sentenceId','wordId','word','char_IA_ids','landing_position','word_first_fix_dur', 'word_first_pass_dur','word_go_past_time','word_mean_fix_dur','word_total_fix_dur','number_of_fixations','word_mean_sacc_dur','word_peak_sacc_velocity']]
+        WORDS += len(words_df)
+        words_df = words_df.sort_values(['speechId', 'paragraphId'])
         words_df.to_csv(output_dir+subject+".csv", index=False, encoding='utf-8')
+
+print()
+print(TOTAL_FIX, " total unfiltered fixations from exported reports.")
+print(WORDS, " total words with IAs.")
+print(ALL_FIX_IN_IA, " total fixations within IAs.")
+print(UNMAPPED, " unmapped fixations, ", (UNMAPPED/ALL_FIX_IN_IA))
+print(DIST, " with tiny distance", (DIST/UNMAPPED), "% could be fixed easily.")

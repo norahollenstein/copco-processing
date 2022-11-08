@@ -180,7 +180,7 @@ def plot_feat_ranges(et_data_all_subjs):
     pos = range(len(median_labels))
     for tick,label in zip(pos,ax.get_xticklabels()):
         ax.text(pos[tick], -250, median_labels[tick], #medians[tick] + offsets[tick]
-                horizontalalignment='center', size='small', color='black', fontsize=14)#, weight='semibold')
+                horizontalalignment='center', color='black', fontsize=14)#, weight='semibold')
     ax.set_xticklabels(["FFD", "MFD", "TFD", "FPD", "GPT"], fontsize=16)
     plt.ylim(0,2000)
     plt.savefig("plots/feature_ranges_copco.pdf")
@@ -288,35 +288,37 @@ def main():
     for file in os.listdir(indir):
         if file.endswith(".csv"):
             subject = file[:3]
-            if int(subject[-2:]) <= 22: # <=22 for typical readers, >=23 for dyslexic participants
-                et_data = pd.read_csv(os.path.join(indir, file), converters={"char_IA_ids": literal_eval})
-                # remove practice trials
-                et_data = et_data.drop(et_data[et_data.speechId == 1327].index)
-                # remove beginning of speech trials
-                et_data = et_data.drop(et_data[et_data.paragraphId == -1].index)
-                et_data_all_subjs = pd.concat([et_data_all_subjs, et_data])
+            if int(subject[-2:]) >=23: # <=22 for typical readers, >=23 for dyslexic participants
+                #if int(subject[-2:]) not in ["01", "13", "14", "17"]: #excluded typical subject
+                if int(subject[-2:]) != "32": #excluded dyslexic subject
+                    et_data = pd.read_csv(os.path.join(indir, file), converters={"char_IA_ids": literal_eval})
+                    # remove practice trials
+                    et_data = et_data.drop(et_data[et_data.speechId == 1327].index)
+                    # remove beginning of speech trials
+                    et_data = et_data.drop(et_data[et_data.paragraphId == -1].index)
+                    et_data_all_subjs = pd.concat([et_data_all_subjs, et_data])
 
-                wl_skip = word_length_effect(et_data, subject)
-                wf_skip = word_freq_effect(et_data, subject)
-                #first_char_analysis(et_data, subject)
+                    wl_skip = word_length_effect(et_data, subject)
+                    wf_skip = word_freq_effect(et_data, subject)
+                    #first_char_analysis(et_data, subject)
 
-                for k,v in wl_skip.items():
-                    skipping_proportions = skipping_proportions.append({"subj":subject, "word_len":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
-                for k,v in wf_skip.items():
-                    skipping_proportions_freq = skipping_proportions_freq.append({"subj":subject, "word_freq":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
+                    for k,v in wl_skip.items():
+                        skipping_proportions = skipping_proportions.append({"subj":subject, "word_len":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
+                    for k,v in wf_skip.items():
+                        skipping_proportions_freq = skipping_proportions_freq.append({"subj":subject, "word_freq":k, "skip": 1-v[0]/v[1]}, ignore_index=True)
 
     # Basic data validation
     #plot_word_len_effect(skipping_proportions)
     #plot_word_freq_effect(skipping_proportions_freq)
-    plot_feat_ranges(et_data_all_subjs)
+    #plot_feat_ranges(et_data_all_subjs)
 
     # Landing position analyses
-    """
+
     plot_landing_position(et_data_all_subjs)
     first_char_analysis(et_data_all_subjs, "ALL")
     landing_pos_freq(et_data_all_subjs)
     landing_pos_word_len(et_data_all_subjs)
-    """
+
 
     # Total number of fixations across all participants
     print(et_data_all_subjs['number_of_fixations'].sum)

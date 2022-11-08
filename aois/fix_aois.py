@@ -3,10 +3,10 @@ import pandas as pd
 
 # fix interest areas of first and last line: these are always too short compared to the middle lines
 
-for file in os.listdir('new_aois/'):
+for file in os.listdir('renamed_aois_aug22/'):
     if file.endswith(".ias"):
         print(file)
-        ias = pd.read_csv('new_aois/'+file, delimiter="\t", header=None, index_col=False, names=["type", "number", "left", "top", "right", "bottom", "label"])
+        ias = pd.read_csv('renamed_aois_aug22/'+file, delimiter="\t", header=None, index_col=False, names=["type", "number", "left", "top", "right", "bottom", "label"])
         #check if AOIs have more than one line
         if len(ias["top"].unique()) > 1:
             top_line_position = ias["top"].min()
@@ -28,4 +28,4 @@ for file in os.listdir('new_aois/'):
             ias["top"] = int(midpoint - 47)
             ias["bottom"] = int(midpoint + 47)
 
-        ias.to_csv("new_aois_fixed_first_last/"+file, index=False, header=False, sep="\t")
+        ias.to_csv("aois_fixed_aug22/"+file, index=False, header=False, sep="\t")
