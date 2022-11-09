@@ -15,9 +15,10 @@ This script includes calculation of text and sentence length.
 
 The extracted features can be found in `ExtractedFeatures/`, but if required you can also re-run the code to add additional features or modify the existing ones:
 
-1. Use the DataViewer software from SR Research to convert the recorded EDF files to fixation reports and interest area reports in TXT format. If the resports are exported in utf-8 encoding (this can be speficied in the DataViewer preferences), the next step can be skipped.  
+1. Use the DataViewer software from SR Research to convert the recorded EDF files to fixation reports and interest area reports in TXT format.  
 
-2. Convert SR DataViewer output files to UTF-8 for correct representation of Danish special characters:  
+2. If the reports were exported in utf-8 encoding (this can be speficied in the DataViewer preferences), this step can be skipped.  
+Convert SR DataViewer output files to UTF-8 for correct representation of Danish special characters:  
 `iconv -f ISO-8859-1 -t UTF-8 FIX_report_P10.txt > FIX_report_P10-utf8.txt`  
 `iconv -f ISO-8859-1 -t UTF-8 IA_report_P10.txt > IA_report_P10-utf8.txt`  
 
@@ -39,3 +40,5 @@ A description of the extracted features can be found [here](https://osf.io/ud8s5
 ## Data validation
 
 Use the script `validate_data.py` to check the data quality, e.g., word length effect and landing position analysis.
+
+Use the script `participant_correlations.py` to calculate correlations between different participants characteristics.
