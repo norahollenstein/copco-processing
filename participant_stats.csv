@@ -37,9 +37,9 @@ P35,0.71,4,14,15.28,0.23,285.08,24,F,Danish,normal vision,4.3,yes,0.421052631578
 P36,0.40,2,5,66.57,1.09,58.49,23,F,Danish,normal vision,0.7,yes,0.10526315789473684
 P37,0.58,4,12,16.02,0.23,270.70,25,F,Danish,normal vision,4.8,yes,0.34210526315789475
 P38,0.75,2,8,35.20,0.54,115.45,30,M,Danish,glasses,3.8,yes,0.5263157894736842
-P39,1.00,1,4,36.75,0.39,160.20,32,F,Danish,glasses,3.2,yes,
-P40,0.92,4,12,26.07,0.36,173.26,29,M,Danish,normal vision,3.1,yes,
-P41,0.88,4,16,24.94,0.40,154.94,51,F,Danish,glasses,4.0,yes,
+P39,1.00,1,4,36.75,0.39,160.20,32,F,Danish,glasses,3.2,yes,0.3684210526315789
+P40,0.92,4,12,26.07,0.36,173.26,29,M,Danish,normal vision,3.1,yes,0.15789473684210525
+P41,0.88,4,16,24.94,0.40,154.94,51,F,Danish,glasses,4.0,yes,0.2631578947368421
 P42,0.80,5,10,18.75,0.28,224.48,24,F,Danish,contact lenses,4.2,no,
 P43,0.79,7,14,25.83,0.31,213.21,27,F,Danish,contact lenses,3.2,no,
 P44,0.73,6,22,19.07,0.32,208.43,23,F,Czech/Danish (bilingual),normal vision,3.3,no,
@@ -52,7 +52,8 @@ P50,0.64,4,11,37.27,0.47,133.30,35,M,Hebrew,glasses,1.2,no,
 P51,0.88,7,16,19.64,0.27,231.88,33,F,German (but fluent in Norwegian also),normal vision,2.3,no,
 P52,0.86,9,22,17.67,0.26,251.12,28,M,Czech/Danish (bilingual),normal vision,3.9,no,
 P53,0.78,6,18,16.48,0.24,261.92,25,F,Danish,normal vision,4.9,no,
-P54,0.80,4,15,23.11,0.39,160.79,22,F,Icelandic,normal vision,2.6,possibly,
+P54,0.80,4,15,23.11,0.39,160.79,22,F,Icelandic,normal vision,2.6,no,
 P55,0.81,6,21,26.78,0.37,169.30,26,M,Portugese,normal vision,2.6,no,
 P56,0.65,10,20,22.13,0.29,216.27,29,F,Hungarian,contact lenses,1.7,no,
 P57,0.67,2,9,22.09,0.39,157.84,30,F,Korean,normal vision,1.7,no,
+P58,0.44,4,16,19.23,0.32,193.94,32,F,Spanish,norrmal vision,1.2,no,

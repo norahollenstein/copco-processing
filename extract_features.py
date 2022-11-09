@@ -25,10 +25,11 @@ TOTAL_FIX = 0
 ALL_FIX_IN_IA = 0
 UNMAPPED = 0
 DIST = 0
+dists = []
 WORDS = 0
 
 for file in os.listdir(report_dir):
-    if file.startswith("FIX_report"):
+    if file.startswith("FIX_report_P"):
 
         print(file)
         data = pd.read_csv(report_dir+file, delimiter="\t", quotechar='"', doublequote=False, converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})
@@ -120,8 +121,10 @@ for file in os.listdir(report_dir):
                 else:
                     UNMAPPED += 1
                     if fix_info['CURRENT_FIX_NEAREST_INTEREST_AREA'] in char_id_list:
+                        dists.append(float(fix_info['CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE'].replace(',', '.')))
                         if float(fix_info['CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE'].replace(',', '.')) < 1:
                             DIST += 1
+
 
             # now process word features that need previously added fixation features
             fixations_to_left_of_curr_fix = []
@@ -177,3 +180,4 @@ print(WORDS, " total words with IAs.")
 print(ALL_FIX_IN_IA, " total fixations within IAs.")
 print(UNMAPPED, " unmapped fixations, ", (UNMAPPED/ALL_FIX_IN_IA))
 print(DIST, " with tiny distance", (DIST/UNMAPPED), "% could be fixed easily.")
+print(len(dists), np.mean(dists), np.median(dists), np.min(dists), np.max(dists))
