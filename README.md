@@ -1,5 +1,11 @@
 # CopCo Eye-Tracking Data Processing
 
+This repository contains the code to analyze and post-process the eye-tracking data of the CopCo corpus, which is described in the following publication:
+
+Nora Hollenstein, Maria Barrett, and Marina Björnsdóttir. 2022. [The Copenhagen Corpus of Eye Tracking Recordings from Natural Reading of Danish Texts](https://aclanthology.org/2022.lrec-1.182/). In _Proceedings of the Thirteenth Language Resources and Evaluation Conference_, pages 1712–1720, Marseille, France. European Language Resources Association.
+
+Please make sure to read about the data format and download the latest version of the data from the [OSF repository](https://osf.io/ud8s5/).
+
 ## Participant statistics
 `python participant_statistics.py RawData/`  
 This script includes calculation of comprehension scores and overall reading times. Raw Data should include one folder per participant containing the respective EDF recording file.
@@ -42,3 +48,9 @@ A description of the extracted features can be found [here](https://osf.io/ud8s5
 Use the script `validate_data.py` to check the data quality, e.g., word length effect and landing position analysis.
 
 Use the script `participant_correlations.py` to calculate correlations between different participants characteristics.
+
+## Dyslexia classification
+
+This directory contains the code used for the dyslexica classification methods described in the following publication:
+
+Marina Björnsdóttir, Nora Hollenstein, and Maria Barrett, 2023. Dyslexia Prediction from Natural Reading of Danish Texts. In _Proceedings of the 24th Nordic Conference on Computational Linguistics_, pages 1712–1720, Torshavn, Faroe Islands. 
