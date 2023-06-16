@@ -5,6 +5,13 @@ from ast import literal_eval
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
 
+speeches = word2char_mapping.groupby("speechId")
+for id, speech in speeches:
+    print(id, len(speech['sentenceId'].unique()))
+
+print()
+print()
+
 sents = word2char_mapping.groupby("sentenceId")
 
 

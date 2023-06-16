@@ -1,3 +1,4 @@
+from helpers import get_experiment_part
 import os
 import pandas as pd
 import numpy as np
@@ -6,16 +7,9 @@ import sys
 
 # This script reads fixation reports from SR Data Vierwer and convert fixation events into character-level and word-level gaze features
 
-def get_experiment_part(speechid):
-    #print(speechid)
-    # only danske taler speeches
-    #experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526]}
-    # with wikipedia articles
-    experiment_parts = {"1": [1327, 7905, 18561, 18473, 11171, 12063, 26670, 18670, 7946, 22811, 26682, 202150, 202151, 202152, 202204, 202205, 202206], "2": [1317, 1125, 7856, 10365, 1323, 7797, 1165, 1318, 10440, 17526, 202201, 202202, 202203, 202207, 202208, 202209]}
-    for k,v in experiment_parts.items():
-        if speechid in v:
-            part = k
-    return part
+# test: speechIDs 18473 and 7905
+
+
 
 word2char_mapping = pd.read_csv("word2char_IA_mapping.csv", converters={"characters": literal_eval, "char_IA_ids": literal_eval})
 report_dir = "FixationReports/"
@@ -29,7 +23,7 @@ dists = []
 WORDS = 0
 
 for file in os.listdir(report_dir):
-    if file.startswith("FIX_report_P"):
+    if file.startswith("FIX_report_"):
 
         print(file)
         data = pd.read_csv(report_dir+file, delimiter="\t", quotechar='"', doublequote=False, converters={"CURRENT_FIX_INTEREST_AREAS": literal_eval})
@@ -42,6 +36,7 @@ for file in os.listdir(report_dir):
         data = data.drop(data[data.paragraphid == -1].index)
 
         # check which experiment part was conducted
+        # todo: can this be removed? we get experiment part through char mapping
         experiment_parts = []
         for speech_id in data['speechid'].unique():
             experiment_parts.append(get_experiment_part(speech_id))
@@ -54,20 +49,38 @@ for file in os.listdir(report_dir):
 
         # split data into trials (1 trial = 1 screen)
         trials = data.groupby(["TRIAL_INDEX"])
+        #print(len(trials))
+        #print("----")
 
         for trial_no, trial_data in trials:
-            #print(trial_no, trial_data)
+            # todo: count trials - check when there are duplicates?
+
+            #print(trial_no, len(trial_data))
+
+            #print(trial_data['TRIAL_INDEX'].unique(), len(trial_data), trial_data['speechid'].unique())
             #print(len(trial_data))
+
             # remove all fixations < 100ms as they probably don't contain linguistic processing information
             trial_data = trial_data.drop(trial_data[trial_data.CURRENT_FIX_DURATION < 100].index)
             #print(len(trial_data))
+
+            #print(trial_data['TRIAL_INDEX'].unique(), len(trial_data), trial_data['speechid'].unique())
+            #print("---")
+
 
             # ---- TO DO ----
             # map fixations that fall outside of interest areas but are close enough
             # especially the for the first and last line on the screen. the interest areas of these lines seems to be of shorter height than the rest.
             # use CURRENT_FIX_NEAREST_INTEREST_AREA_LABEL with a threshold on CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE
 
-            trial_word_data = word2char_mapping[(word2char_mapping["trialId"] == trial_no) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
+            # !!! todo: this should map on speechID and paraID, not trialID! trialID is not equal across participants!!
+            trial_word_data = word2char_mapping[(word2char_mapping["speechId"] == trial_data.speechid.unique()[0]) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
+
+            # assign this participants trial number
+            trial_word_data.loc[:, 'trialId'] = trial_no
+            #print(trial_word_data['trialId'].unique(), len(trial_word_data), trial_word_data['speechId'].unique())
+
+
             # drop ID -1 here too (new text screen)
             trial_word_data = trial_word_data.drop(trial_word_data[trial_word_data.paragraphId == -1].index)
             # drop columns that are not needed
@@ -125,7 +138,6 @@ for file in os.listdir(report_dir):
                         if float(fix_info['CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE'].replace(',', '.')) < 1:
                             DIST += 1
 
-
             # now process word features that need previously added fixation features
             fixations_to_left_of_curr_fix = []
             for word_ind, word in trial_word_data.iterrows():
@@ -167,11 +179,15 @@ for file in os.listdir(report_dir):
                         else:
                             trial_word_data.loc[word_ind, 'word_go_past_time'] += trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
             # concatenate all trials
+            #print(trial_word_data['trialId'].unique(), trial_word_data['speechId'].unique())
             words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         # reorder columns
         words_df = words_df[['part','trialId','speechId','paragraphId','sentenceId','wordId','word','char_IA_ids','landing_position','word_first_fix_dur', 'word_first_pass_dur','word_go_past_time','word_mean_fix_dur','word_total_fix_dur','number_of_fixations','word_mean_sacc_dur','word_peak_sacc_velocity']]
         WORDS += len(words_df)
-        words_df = words_df.sort_values(['speechId', 'paragraphId'])
+        # todo: try sorting by trialID and speechID
+        words_df = words_df.sort_values(['speechId', 'trialId'])
+        #trials_after = words_df.groupby(["trialId"])
+        #print(len(trials_after))
         words_df.to_csv(output_dir+subject+".csv", index=False, encoding='utf-8')
 
 print()
