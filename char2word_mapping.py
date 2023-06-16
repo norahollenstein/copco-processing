@@ -23,21 +23,14 @@ for file in os.listdir(report_dir):
             if speech_no not in trial_areas_df['speechId'].unique():
 
                 trials = speech_data.groupby(["TRIAL_INDEX"])
-                #trials = data.groupby(["TRIAL_INDEX", "speechid"])
                 subject = speech_data['RECORDING_SESSION_LABEL'].unique()[0]
-                #print(subject)
-                #print(data[data['speechid'].isnull()])
                 for trial_no, trial_data in trials:
-                    #print(trial_no, len(trial_data))
                     char_map = {}
                     word2char = {}
                     for cidx, c in enumerate(trial_data["IA_LABEL"].values):
                         char_map[cidx+1] = c
 
-                    #print(list(trial_data['speechid']))
                     part = get_experiment_part(trial_data['speechid'].unique()[0])
-                    #word_ias = pd.read_csv('aois/new_aois/part'+part+'_IA_'+str(trial_data.speechid.values[0]).strip()+'_'+str(trial_data.paragraphid.values[0]).strip()+'_words.ias', delimiter="\t", header=None)
-                    #word_ias = pd.read_csv('aois/new_aois_fixed_first_last/part'+part+'_IA_'+str(trial_data.speechid.values[0]).strip()+'_'+str(trial_data.paragraphid.values[0]).strip()+'_words.ias', delimiter="\t", header=None, index_col=False, names=["type", "number", "left", "top", "right", "bottom", "label"])
                     speechId = int(trial_data.speechid.values[0])
                     paragraphId = int(trial_data.paragraphid.values[0])
 
@@ -64,15 +57,12 @@ for file in os.listdir(report_dir):
             else:
                 #print(speech_no, " already done!")
                 continue
-#print(len(trial_areas_df))
-trial_areas_df.drop_duplicates(inplace=True)
-#print(len(trial_areas_df))
 
+trial_areas_df.drop_duplicates(inplace=True)
 trial_areas_df.reset_index(inplace=True)
 
 # split sentences to add sentence ids
 sentence_ids = split_sentences(trial_areas_df)
 trial_areas_df['sentenceId'] = sentence_ids
 print(len(trial_areas_df), "interest areas.")
-# todo: drop index
 trial_areas_df.to_csv("word2char_IA_mapping.csv", index=False, encoding='utf-8')
