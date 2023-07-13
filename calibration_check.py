@@ -11,7 +11,7 @@ import numpy as np
 
 def check_calibration():
 
-    data_dir = "RawData/"
+    data_dir = sys.argv[1]
     subject_calibration_dict = {}
     for item in os.listdir(data_dir):
         if "P" in item:
