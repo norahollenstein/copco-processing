@@ -13,7 +13,7 @@ def check_calibration():
 
     data_dir = sys.argv[1]
     subject_calibration_dict = {}
-    for item in os.listdir(data_dir):
+    for item in sorted(os.listdir(data_dir)):
         if "P" in item:
             speeches_read = []
             subject_id = item
