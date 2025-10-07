@@ -59,7 +59,7 @@ for file in os.listdir(report_dir):
             trial_word_data = word2char_mapping[(word2char_mapping["speechId"] == trial_data.speechid.unique()[0]) & (word2char_mapping["paragraphId"] == trial_data.paragraphid.unique()[0]) & (word2char_mapping["part"] == int(experiment_parts[0]))].copy()
 
             # assign this participants trial number
-            trial_word_data.loc[:, 'trialId'] = trial_no
+            trial_word_data.loc[:, 'trialId'] = trial_no[0]
 
             # drop ID -1 here too (new text screen)
             trial_word_data = trial_word_data.drop(trial_word_data[trial_word_data.paragraphId == -1].index)
