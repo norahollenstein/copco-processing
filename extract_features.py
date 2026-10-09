@@ -1,4 +1,4 @@
-from helpers import get_experiment_part
+from helpers import get_experiment_part, get_go_past_times
 import os
 import pandas as pd
 import numpy as np
@@ -74,7 +74,6 @@ for file in os.listdir(report_dir):
             trial_word_data.loc[:, 'word_total_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_mean_fix_dur'] = np.NaN
             trial_word_data.loc[:, 'word_first_pass_dur'] = np.NaN
-            trial_word_data.loc[:, 'word_go_past_time'] = np.NaN
             trial_word_data.loc[:, "word_first_fix_dur"] = np.NaN
             trial_word_data.loc[:, 'landing_position'] = np.NaN
             trial_word_data.loc[:, 'number_of_fixations'] = 0
@@ -88,6 +87,7 @@ for file in os.listdir(report_dir):
             trial_word_data['saccade_vels'] = [list() for x in range(len(trial_word_data.index))]
 
             # iterate through all fixations in a trial
+            word_fixations = []
             for fix_id, fix_info in trial_data.iterrows():
                 # check that current fixation falls on text
                 if fix_info['CURRENT_FIX_INTEREST_AREA_LABEL'] != ".":
@@ -95,6 +95,7 @@ for file in os.listdir(report_dir):
                     for widx, char_id_list in enumerate(trial_word_data['char_IA_ids']):
                         # this only takes the first IA, therefore all IAs falling on a question are automatically out
                         if int(fix_info['CURRENT_FIX_INTEREST_AREA_ID']) in char_id_list:
+                            word_fixations.append((widx, fix_info['CURRENT_FIX_DURATION']))
                             if np.isnan(trial_word_data.at[widx, 'word_total_fix_dur']):
                                 trial_word_data.at[widx, 'word_total_fix_dur'] = fix_info['CURRENT_FIX_DURATION']
                             else:
@@ -119,12 +120,11 @@ for file in os.listdir(report_dir):
                             DIST += 1
 
             # now process word features that need previously added fixation features
-            fixations_to_left_of_curr_fix = []
+            trial_word_data['word_go_past_time'] = get_go_past_times(word_fixations, len(trial_word_data))
             for word_ind, word in trial_word_data.iterrows():
 
                 if len(word["fixation_durs"]) != 0:
                     trial_word_data.loc[word_ind, 'word_mean_fix_dur'] = np.mean(word['fixation_durs'])
-                    go_past_fix = []
                     first_pass_fix = []
                     # check for saccades
                     if len(word["saccade_durs"]) != 0:
@@ -133,31 +133,16 @@ for file in os.listdir(report_dir):
 
                     for idx, f in enumerate(word['trial_fix_ids']):
                         if idx == 0:
-                            go_past_fix.append(f)
                             first_pass_fix.append(f)
-                            if idx != len(word['trial_fix_ids'])-1:
-                                i = 1
-                                # keep track of previous fixations in the trial
-                                while f+i in fixations_to_left_of_curr_fix:
-                                    go_past_fix.append(f+i)
-                                    i +=1
                         else:
-                            if f == go_past_fix[-1]+1:
-                                go_past_fix.append(f)
                             if f == first_pass_fix[-1]+1:
                                 first_pass_fix.append(f)
-                        fixations_to_left_of_curr_fix.append(f)
 
                     for fix_ind in first_pass_fix:
                         if np.isnan(trial_word_data.loc[word_ind, 'word_first_pass_dur']):
                             trial_word_data.loc[word_ind, 'word_first_pass_dur'] = trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
                         else:
                             trial_word_data.loc[word_ind, 'word_first_pass_dur'] += trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
-                    for fix_ind in go_past_fix:
-                        if np.isnan(trial_word_data.loc[word_ind, 'word_go_past_time']):
-                            trial_word_data.loc[word_ind, 'word_go_past_time'] = trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
-                        else:
-                            trial_word_data.loc[word_ind, 'word_go_past_time'] += trial_data.loc[fix_ind, 'CURRENT_FIX_DURATION']
             # concatenate all trials
             words_df = pd.concat([words_df, trial_word_data], ignore_index=True)
         # reorder columns

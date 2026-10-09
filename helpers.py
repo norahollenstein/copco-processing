@@ -1,6 +1,25 @@
 import numpy as np
 from collections import Counter
 
+
+def get_go_past_times(fixations, n_words):
+    """Sum mapped fixations from first entry until the first rightward exit.
+
+    Fixations are (word index, duration) pairs in temporal order. If no exit
+    occurs, sum through trial end. Unfixated words remain NaN.
+    """
+    durations = np.full(n_words, np.nan)
+    for start, (word, _) in enumerate(fixations):
+        if not np.isnan(durations[word]):
+            continue
+        durations[word] = 0
+        for next_word, duration in fixations[start:]:
+            if next_word > word:
+                break
+            durations[word] += duration
+    return durations
+
+
 def get_experiment_part(speechid):
     """The texts of the CopCo corpus were split into two experiment parts. At the beginning of each recording one part was selected randomly."""
     # only danske taler speeches
